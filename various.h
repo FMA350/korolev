@@ -1,8 +1,6 @@
 #ifndef VARIOUS
 #define VARIOUS
 
-#define EXIT 1
-
 const char * DELIMITER;
 const char * WELCOME_TEXT;
 

@@ -6,13 +6,6 @@
 #include "various.h"
 
 
-//ERROR Return Codes
-//static const int ERROR_WRONG_ARGUMENT_TYPE  = 96;
-//static const int ERROR_WRONG_ARGUMENT_VALUE = 97;
-//static const int ERROR_TOO_MANY_ARGUMENTS = 98;
-//static const int ERROR_COMMAND_NOT_RECOGNIZED = 99;
-
-
 
 void ErrorHandling(int errorCode){
 //Error handling function. it is executed every time the ExecuteCommand function returns a zero.

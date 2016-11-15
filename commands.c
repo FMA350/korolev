@@ -30,7 +30,8 @@ int ExecuteCommand(char* line){
 	}
 
   if(strcmp(commandToken, CALCULATE_ORBITAL_VELOCITY) == 0){
-		OrbitalVelocityCommand();
+		int error = OrbitalVelocityCommand();
+		return error;
   }
 	else{
 		//command was not regognized, return 99.
@@ -38,8 +39,6 @@ int ExecuteCommand(char* line){
 	}
   return 0;
  }
-
-
 
 int OrbitalVelocityCommand(){
  //(double distance, double aphelion, double perihelion, double u)
