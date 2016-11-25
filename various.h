@@ -3,8 +3,19 @@
 
 #define EXIT 1
 
+#define KERROR    "\x1B[31m"  //red
+#define KNORMAL   "\x1B[0m"   //white
+#define KOUTPUT   "\x1B[32m"  //green
+#define KDATA     "\x1B[34m"  //blue
+#define KEVIDENCE "\x1B[33m"  //yellow
+
 const char * DELIMITER;
 const char * WELCOME_TEXT;
+
+typedef struct ThreadData{
+	char * line;
+	int  * returnCode;
+} ThreadData;
 
 typedef struct CelestialBody{
 	char * name;
@@ -50,11 +61,11 @@ typedef struct Vehicle{
 
 //Function Prototypes
 
-RequestDouble(double min, double max, char * message);
+double RequestDouble(double min, double max, char * message);
 
-GetCelestialBodyConstant(char * body);
+CelestialBody RequestCelestialBody(int bodyClass, char * message);
 
-PartitionEllipse(int numberOfPoints);
+//double [] PartitionEllipse(int numberOfPoints);
 
 
 #endif

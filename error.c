@@ -3,14 +3,8 @@
 
 //various
 #include <stdio.h>
+#include <stdlib.h>
 #include "various.h"
-
-
-//ERROR Return Codes
-//static const int ERROR_WRONG_ARGUMENT_TYPE  = 96;
-//static const int ERROR_WRONG_ARGUMENT_VALUE = 97;
-//static const int ERROR_TOO_MANY_ARGUMENTS = 98;
-//static const int ERROR_COMMAND_NOT_RECOGNIZED = 99;
 
 
 
@@ -20,19 +14,17 @@ void ErrorHandling(int errorCode){
   switch(errorCode){
 
     case EXIT :
-              printf("Thanks for using Korolev Space Utility Software \n");
+              printf(KEVIDENCE"   Thanks for using Korolev Space Utility Software!\n"KNORMAL);
 			        //exit program
 			        exit(0);
               break;
-              //TODO: should I clean the memory? D:
-
     case ERROR_TOO_MANY_ARGUMENTS:
-              printf("ERROR! Too many arguments for such function!\n");
+              printf(KERROR"  ***ERROR! Too many arguments for such function!\n"KNORMAL);
               break;
     case ERROR_COMMAND_NOT_RECOGNIZED: {
-              printf("ERROR! Command was not recognized by the\n"
-                     "Korolev Space trajectories and Guidance\n"
-                     "program!\n");
+              printf(KERROR"***ERROR! Command was not recognized by the\n"
+                           "   Korolev Space trajectories and Guidance\n"
+                           "   program!\n"KNORMAL);
               break;
             }
   }

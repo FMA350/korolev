@@ -1,12 +1,13 @@
 //Various
 #include <stdio.h>
 #include <float.h>
+#include <string.h>
 
 //Header
 #include "commands.h"
 #include "error.h"
 #include "various.h"
-
+#include "orbitalFunctions.h"
 
 
 //COMMANDS
@@ -18,25 +19,30 @@ const char * HELP													= "help\n";							 //Gives a fast overview and dis
 const char * DELIMITER 	= " ";		//To delimit the text given by the user
 const int PARTITION_PARTS = 10; //to choose in how many parts the the orbit should be partitioned in.
 
-int ExecuteCommand(char* line){
-	//TODO: Segmentation fault.
-	//parse the input, then check if the syntax is correct
+void* ExecuteCommand(void* d){
+	ThreadData *data = (ThreadData*)d;
+	
 	char * commandToken;
-	commandToken = strtok(line, DELIMITER);
-  //EXIT Check
+	commandToken = (char*) strtok((char*)data->line, DELIMITER);
+
 	if(strcmp(commandToken, EXIT_COMMAND) == 0){
 		//retrun the close value;
-		return EXIT;
+		printf("EXITEXITEXIT\n");
+		data->returnCode = (int*)EXIT;
+		printf("%d\n", data->returnCode);
+		return NULL;
 	}
 
   if(strcmp(commandToken, CALCULATE_ORBITAL_VELOCITY) == 0){
-		OrbitalVelocityCommand();
+		data->returnCode = (int*)OrbitalVelocityCommand();
+		return NULL;
   }
 	else{
 		//command was not regognized, return 99.
-		return ERROR_COMMAND_NOT_RECOGNIZED;
+		data->returnCode =  (int*)ERROR_COMMAND_NOT_RECOGNIZED;
+		return NULL;
 	}
-  return 0;
+  return NULL;
  }
 
 
@@ -48,18 +54,22 @@ int OrbitalVelocityCommand(){
  double perihelion;
  CelestialBody referenceBody;
 	//NOTE: Here a method returning a super class would be so damn sweet!
-	perihelion = requestDouble(0, DBL_MAX, "Please Insert perihelion value for the desired orbit");
-	aphelion   = requestDouble(perihelion, DBL_MAX, "Please Insert Aphelion value for the desired orbit");
-  distance	 = requestDouble(perihelion, aphelion, "Please insert the distance the ship is right now from the orbiting body");
-	referenceBody = requestCelestialBody( "Please insert the referenceBody");
+	perihelion = RequestDouble(0, DBL_MAX, "Please Insert perihelion value for the desired orbit");
+	aphelion   = RequestDouble(perihelion, DBL_MAX, "Please Insert Aphelion value for the desired orbit");
+  distance	 = RequestDouble(perihelion, aphelion, "Please insert the distance the ship is right now from the orbiting body");
+	referenceBody = RequestCelestialBody(0, "Please insert the referenceBody");
 	double speed = CalculateOrbitalSpeed(distance, aphelion, perihelion, referenceBody.u);
-	printf("**PROGRAM OUTPUT:**\n");
-	printf("  The orbital speed for the distance %d is : %d \n",distance, speed);
-	printf("  The orbital speed at the aphelion is : %d \n", CalculateOrbitalSpeed(aphelion, aphelion, perihelion, celestialBody.u));
-	printf("  The orbital speed at the perihelion is : %d \n", CalculateOrbitalSpeed(perihelion, aphelion, perihelion, celestialBody.u));
-	double h = (aphelion - perihelion)/PARTITION_PARTS;
+	printf(KOUTPUT"**PROGRAM OUTPUT:**\n");
+	printf("  The orbital speed for the distance" KDATA " %g m" KOUTPUT " is : "KDATA"%g"KOUTPUT" m/s \n",distance, speed);
+	printf("  The orbital speed at the aphelion is : "KDATA"%g"KOUTPUT" m/s \n", CalculateOrbitalSpeed(aphelion, aphelion, perihelion, referenceBody.u));
+	printf("  The orbital speed at the perihelion is : "KDATA"%g"KOUTPUT" m/s \n", CalculateOrbitalSpeed(perihelion, aphelion, perihelion, referenceBody.u));
+	double h = (aphelion - perihelion)/(double)PARTITION_PARTS;
+	printf("Showing different speeds for different places in the orbit\n"
+	      "Jumping of %g m (meters) every time\n",h);
+	double newDistance;
 	for(int i = 1; i< PARTITION_PARTS; i++){
-		printf("  The orbital speed at the distance %d is : %d \n",(aphelion + h*i), CalculateOrbitalSpeed(aphelion + h*i, aphelion, perihelion, celestialBody.u));
+		newDistance = (perihelion + h*i);
+		printf(KOUTPUT"  The orbital speed at the distance "KDATA"%g"KOUTPUT" is : "KDATA"%g"KOUTPUT" m/s \n"KNORMAL, newDistance, CalculateOrbitalSpeed(newDistance, aphelion, perihelion, referenceBody.u));
 	}
 return 0;
 }

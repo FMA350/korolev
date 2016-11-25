@@ -1,7 +1,9 @@
 #ifndef COMMANDS
 #define COMMANDS
 
-int ExecuteCommand(char* line);
+
+
+void* ExecuteCommand(void* line);
 
 int OrbitalVelocityCommand();
 
