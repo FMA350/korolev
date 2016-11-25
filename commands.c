@@ -34,8 +34,13 @@ void* ExecuteCommand(void* d){
 	}
 
   if(strcmp(commandToken, CALCULATE_ORBITAL_VELOCITY) == 0){
+<<<<<<< HEAD
 		data->returnCode = (int*)OrbitalVelocityCommand();
 		return NULL;
+=======
+		int error = OrbitalVelocityCommand();
+		return error;
+>>>>>>> ebf1fb689889f580b89ea0b0a256fa317e030ac8
   }
 	else{
 		//command was not regognized, return 99.
@@ -44,8 +49,6 @@ void* ExecuteCommand(void* d){
 	}
   return NULL;
  }
-
-
 
 int OrbitalVelocityCommand(){
  //(double distance, double aphelion, double perihelion, double u)

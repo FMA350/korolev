@@ -1,6 +1,7 @@
 #ifndef VARIOUS
 #define VARIOUS
 
+<<<<<<< HEAD
 #define EXIT 1
 
 #define KERROR    "\x1B[31m"  //red
@@ -9,6 +10,8 @@
 #define KDATA     "\x1B[34m"  //blue
 #define KEVIDENCE "\x1B[33m"  //yellow
 
+=======
+>>>>>>> ebf1fb689889f580b89ea0b0a256fa317e030ac8
 const char * DELIMITER;
 const char * WELCOME_TEXT;
 
