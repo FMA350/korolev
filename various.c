@@ -3,12 +3,6 @@
 
 #include "various.h"
 
-// #define KERROR    "\x1B[31m"  //red
-// #define KNORMAL   "\x1B[0m"   //white
-// #define KOUTPUT   "\x1B[32m"  //green
-// #define KDATA     "\x1B[34m"  //blue
-// #define KEVIDENCE "\x1B[33m"  //yellow
-
 static CelestialBody celestialBody[4] = {
  {
 	//name             =
@@ -164,4 +158,31 @@ CelestialBody RequestCelestialBody(int celestialBodyClass, char* message){
 		}
 		printf(KERROR"**ERROR-ERROR-ERROR Value was not acceptable\n"KNORMAL);
 	}
+}
+
+void PrintHelloMessage(){
+
+  printf(KOUTPUT"\n\n\n                                               Korolev Space Guidance System 0.0.1\n\n\n"KEVIDENCE
+  "                  :\n"
+  "                  :\n"
+  "                  :\n"
+  "                  :\n"
+  "   .              :\n"
+  "    '.            :           .'\n"
+  "      '.          :         .'\n"
+  "        '.   .-''''''-.   .'                                   .'':\n"
+  "          '.'          '.'                               .-''''-.'         .---.          .----.        .-'''-.\n"
+  "           :            :                _    _        .'     .' '.    ...'     '...    .'      '.    .'       '.\n"
+  "   .........            .........    o  (_)  (_)  ()   :    .'    :   '..:.......:..'   :        :    :         :   o\n"
+  "           :            :                              :  .'      :       '.....'       '.      .'    '.       .'\n"
+  "            :          :                             .'.'.      .'                        `''''`        `'''''`\n"
+  "             '........'                              ''   ``````\n"
+  "            .'    :   '.\n"
+  "          .'      :     '.\n"
+  "        .'        :       '.\n"
+  "      .'          :         '.\n"
+  "         Dana'97  :\n"
+  "                  :\n"
+  "                  :\n"
+  "                  :\n"KNORMAL);
 }

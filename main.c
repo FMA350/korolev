@@ -8,28 +8,33 @@
 
 
 char* ReadLine();
+
 int main(){
 
-  //printHelloMessage();
+  PrintHelloMessage();
   char* line;
   int returnCode;
   while(1){
-    //get the order
     line = (char*)ReadLine();
     pthread_t td;
     //create a quick struct that contains both the returnCode pointer and the line value.
-    ThreadData data;
-      data.returnCode = (int)&returnCode;
+    ThreadData data; //ThreadData is defined in various.h
+      data.returnCode = &returnCode;
       data.line = line;
+    printf("%s\n",data.line);
+
     if(pthread_create(&td, NULL, &ExecuteCommand, &data)){
+      //Could not create the thread
       printf(KERROR "***ERROR-ERROR-ERROR***\n"
                     "   Internal program Error, thread could not lanch \n" KNORMAL);
-            exit(1);
+      exit(1);
     }
+
     if(pthread_join(td, NULL)){
+      //could not wait the thread to finish
       printf(KERROR "***ERROR-ERROR-ERROR***\n"
                     "   Internal program Error, thread could not join \n" KNORMAL);
-            exit(1);
+      exit(1);
     }
     else{
         ErrorHandling(data.returnCode);
@@ -38,12 +43,11 @@ int main(){
   }
 }
 
-
-  char* ReadLine(){
+char* ReadLine(){
     char *line = NULL;
     size_t len = 64;
     ssize_t read;
     read = getline(&line, &len, stdin);
     //TODO: check why the EOF character sends the program to hell
     return line;
-  }
+}

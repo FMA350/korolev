@@ -21,27 +21,20 @@ const int PARTITION_PARTS = 10; //to choose in how many parts the the orbit shou
 
 void* ExecuteCommand(void* d){
 	ThreadData *data = (ThreadData*)d;
-	
 	char * commandToken;
 	commandToken = (char*) strtok((char*)data->line, DELIMITER);
 
 	if(strcmp(commandToken, EXIT_COMMAND) == 0){
-		//retrun the close value;
-		printf("EXITEXITEXIT\n");
 		data->returnCode = (int*)EXIT;
-		printf("%d\n", data->returnCode);
 		return NULL;
 	}
 
   if(strcmp(commandToken, CALCULATE_ORBITAL_VELOCITY) == 0){
-<<<<<<< HEAD
-		data->returnCode = (int*)OrbitalVelocityCommand();
-		return NULL;
-=======
 		int error = OrbitalVelocityCommand();
-		return error;
->>>>>>> ebf1fb689889f580b89ea0b0a256fa317e030ac8
+		data->returnCode = (int*)error; //TODO: operatore & ritornava l'effettiva posizione di error.
+		return NULL;
   }
+
 	else{
 		//command was not regognized, return 99.
 		data->returnCode =  (int*)ERROR_COMMAND_NOT_RECOGNIZED;

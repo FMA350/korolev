@@ -11,6 +11,6 @@
 #define ERROR_COMMAND_NOT_RECOGNIZED 99
 
 //Functions prototypes
-void ErrorHandling(int errorCode);
+void ErrorHandling(int* errorCode);
 
 #endif
