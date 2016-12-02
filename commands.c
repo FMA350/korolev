@@ -31,9 +31,15 @@ void* ExecuteCommand(void* d){
 
   if(strcmp(commandToken, CALCULATE_ORBITAL_VELOCITY) == 0){
 		int error = OrbitalVelocityCommand();
-		data->returnCode = (int*)error; //TODO: operatore & ritornava l'effettiva posizione di error.
+		data->returnCode = (int*)error; //TODO: solve il warning
 		return NULL;
   }
+
+	if(strcmp(commandToken, CALCULATE_DELTA_V) == 0){
+		int error = CALCULATE_DELTA_V();
+		data->returnCode = (int*)error;
+		return NULL;
+	}
 
 	else{
 		//command was not regognized, return 99.
@@ -48,24 +54,29 @@ int OrbitalVelocityCommand(){
  double distance;
  double aphelion;
  double perihelion;
- CelestialBody referenceBody;
+ CelestialBody* referenceBody;
 	//NOTE: Here a method returning a super class would be so damn sweet!
 	perihelion = RequestDouble(0, DBL_MAX, "Please Insert perihelion value for the desired orbit");
 	aphelion   = RequestDouble(perihelion, DBL_MAX, "Please Insert Aphelion value for the desired orbit");
   distance	 = RequestDouble(perihelion, aphelion, "Please insert the distance the ship is right now from the orbiting body");
 	referenceBody = RequestCelestialBody(0, "Please insert the referenceBody");
-	double speed = CalculateOrbitalSpeed(distance, aphelion, perihelion, referenceBody.u);
+	double speed = CalculateOrbitalSpeed(distance, aphelion, perihelion, referenceBody->u);
 	printf(KOUTPUT"**PROGRAM OUTPUT:**\n");
 	printf("  The orbital speed for the distance" KDATA " %g m" KOUTPUT " is : "KDATA"%g"KOUTPUT" m/s \n",distance, speed);
-	printf("  The orbital speed at the aphelion is : "KDATA"%g"KOUTPUT" m/s \n", CalculateOrbitalSpeed(aphelion, aphelion, perihelion, referenceBody.u));
-	printf("  The orbital speed at the perihelion is : "KDATA"%g"KOUTPUT" m/s \n", CalculateOrbitalSpeed(perihelion, aphelion, perihelion, referenceBody.u));
+	printf("  The orbital speed at the aphelion is : "KDATA"%g"KOUTPUT" m/s \n", CalculateOrbitalSpeed(aphelion, aphelion, perihelion, referenceBody->u));
+	printf("  The orbital speed at the perihelion is : "KDATA"%g"KOUTPUT" m/s \n", CalculateOrbitalSpeed(perihelion, aphelion, perihelion, referenceBody->u));
 	double h = (aphelion - perihelion)/(double)PARTITION_PARTS;
 	printf("Showing different speeds for different places in the orbit\n"
 	      "Jumping of %g m (meters) every time\n",h);
 	double newDistance;
 	for(int i = 1; i< PARTITION_PARTS; i++){
 		newDistance = (perihelion + h*i);
-		printf(KOUTPUT"  The orbital speed at the distance "KDATA"%g"KOUTPUT" is : "KDATA"%g"KOUTPUT" m/s \n"KNORMAL, newDistance, CalculateOrbitalSpeed(newDistance, aphelion, perihelion, referenceBody.u));
+		printf(KOUTPUT"  The orbital speed at the distance "KDATA"%g"KOUTPUT" is : "KDATA"%g"KOUTPUT" m/s \n"KNORMAL, newDistance, CalculateOrbitalSpeed(newDistance, aphelion, perihelion, referenceBody->u));
 	}
-return 0;
+ return 0;
+}
+
+int CALCULATE_DELTA_V(){
+	//TODO
+
 }

@@ -10,9 +10,7 @@
 
 void ErrorHandling(int* ec){
 //Error handling function. it is executed every time the ExecuteCommand function returns a zero.
-//TODO: maiale di quel, non riesco a gestire sto schifo.
 int errorCode = (int)ec;
-printf("lastdebug: %d\n", errorCode);
   switch(errorCode){
     //TODO: default case
     case EXIT :

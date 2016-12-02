@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <float.h>
 
 #include "various.h"
 
@@ -134,7 +136,18 @@ double RequestDouble(double min, double max, char* message){
 		}
 }
 
-CelestialBody RequestCelestialBody(int celestialBodyClass, char* message){
+struct Coordinates* BuildCoordinatesSet(char* message){
+  printf("**Program Request**\n"
+         "BuildCoordinatesSet function\n"
+         "%s\n", message);
+         struct Coordinates* coordinates = (struct Coordinates*)malloc(sizeof(struct Coordinates));
+         coordinates->x = RequestDouble(-DBL_MAX, DBL_MAX, "x");
+         coordinates->y = RequestDouble(-DBL_MAX, DBL_MAX, "y");
+         coordinates->z = RequestDouble(-DBL_MAX, DBL_MAX, "z");
+         return coordinates;
+}
+
+CelestialBody* RequestCelestialBody(int celestialBodyClass, char* message){
 	//celestialBodyClass will specify what kind of class if acceptable.
 	//special values may be implemented to specifiy certain classes but not others
 	printf("**Program Request**\n"
@@ -153,11 +166,26 @@ CelestialBody RequestCelestialBody(int celestialBodyClass, char* message){
         if(strcmp(line, celestialBody[i].name) == 0){
 					printf("**Value Acceptable**\n");
           printf("Celestial Body choosen: %s\n", celestialBody[i].name);
-					return celestialBody[i];
+          //TODO: CHECK that & works.
+          return &celestialBody[i];
 				}
 		}
 		printf(KERROR"**ERROR-ERROR-ERROR Value was not acceptable\n"KNORMAL);
 	}
+}
+
+char* RequestString(char* message){
+  printf("**Program Request**\n"
+					"String requeired Required: %s \n", message);
+  char *line = NULL;
+  size_t len = 64;
+  ssize_t read;
+  double value;
+  printf("_-_-_ Insert value: ");
+  read = getline(&line, &len, stdin);
+  printf("getline contains: %s\n",line);
+  strtok(line, "\n");
+  return line;
 }
 
 void PrintHelloMessage(){
@@ -185,4 +213,98 @@ void PrintHelloMessage(){
   "                  :\n"
   "                  :\n"
   "                  :\n"KNORMAL);
+}
+
+//OBJECT CONTROL METHODS
+
+
+//LIST CONTROL METHODS
+ObjectList* CreateObjectList(){
+  //return a pointer to an alloccated Object List space.
+  ObjectList* list = ( ObjectList*)malloc(sizeof(ObjectList));
+  return list;
+}
+
+struct Element* CreateElement(){
+  //returns a pointer to an alloccated Element space
+  struct Element* element = (struct Element*)malloc(sizeof(struct Element));
+  return element;
+}
+
+struct Object* CreateObject(){
+  struct Object* object = (struct Object*)malloc(sizeof(struct Object));
+  object->name = RequestString("Object Name");
+  object->referenceBody = RequestCelestialBody(0, "Reference body for the object");
+  object->coordinates = BuildCoordinatesSet("Position of the object(meters)");
+  object->speedVector = BuildCoordinatesSet("Velocity vector for the Object (m/s) with respect to the reference Object");
+  object->mass = RequestDouble(-DBL_MAX, DBL_MAX, "Mass of the object");
+}
+
+int ListIsEmpty(ObjectList* objectList){
+  if (objectList->firstElement == NULL)
+    return 1;
+  else
+    return 0;
+}
+
+void PushElement(ObjectList* objectList, struct Element* newElement){
+  if(ListIsEmpty(objectList)){
+    objectList->firstElement  = newElement;
+    objectList->lastElement   = newElement;
+  }
+  else{
+    objectList->lastElement->next = newElement;
+    objectList->lastElement = newElement;
+  }
+}
+
+void PopElement(ObjectList* objectList){
+  struct Element*p = objectList->firstElement->next;
+  free(objectList->firstElement);
+  objectList->firstElement = p;
+}
+
+void NextCurrentObject(ObjectList* objectList){
+  if(objectList->currentElement == NULL){
+    objectList->currentElement = objectList->firstElement;
+  }
+  else{
+    objectList->currentElement = objectList->currentElement->next;
+  }
+}
+
+struct Object * GetCurrentObject(ObjectList* objectList){
+  return objectList->currentElement->object;
+}
+
+void ResetCurrentObject(ObjectList* objectList){
+  //reset the current object pointer to NULL, so that it
+  //will output the first element of the Queue when
+  // GetCurrentObject() will be called
+  objectList->currentElement = NULL;
+}
+
+int SeekObject(ObjectList* objectList, struct Object* objectToSeek){
+  //seeks an object and positions the currentElement on the
+  //containing element, returning 0.
+  //if the object cannot be found, returns -1.
+  ResetCurrentObject(objectList);
+  struct Object* toCompare;
+  while((toCompare = GetCurrentObject) != NULL){
+    if(strcmp(objectList->currentElement->object->name, objectToSeek->name)==0){
+      //obj found, currentElement points to it.
+      //printf("OBJECT FOUND!")
+      return 0;
+    }
+    else{
+      //increment the currentElement;
+      NextCurrentObject(objectList);
+    }
+  }
+  //list does not contain such an element!
+  ResetCurrentObject(objectList);
+  return -1;
+
+
+
 }
