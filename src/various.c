@@ -5,116 +5,120 @@
 
 #include "various.h"
 
-static CelestialBody celestialBody[4] = {
- {
-	//name             =
-  "Sun",
-	//mass						 =
-  1000000,
-	//radius           =
-  6371E3, //mean radius in meters
-	//geeASL           =
-  9.807,		//m/s^2
-	//rotationPeriod   =
-  86164.090, //seconds, sideral day
-	////referenceBody    = celestialBody[0][0];
-	//inclination      =
-  7.155, //degrees
-	//eccentricity     =
-  	0.0167086,
-	//perihelion       =
-  147095000000, //meters
-	//aphelion 		     =
-  152100000000, //meters
-	//orbitalPeriod    =
-  365.256363004, //Days
-	//atmosphereHeight =
-  10000,			//Kerman line
-	//u 							 =
-  1.32712440018E20
- },
- {
-  //name             =
-  "Mercury",
-	//mass						 =
-  5.97237E24, //5.97237×10^24
-	//radius           =
-  6371000, //mean radius in meters
-	//geeASL           =
-  9.807,		//m/s^2
-	//rotationPeriod   =
-  86164.090, //seconds, sideral day
-	////referenceBody  = celestialBody[0][0],
-	//inclination      =
-  7.155, //degrees
-	//eccentricity     =
-  	0.0167086,
-	//perihelion       =
-  147095000000, //meters
-	//aphelion 		     =
-  152100000000, //meters
-	//orbitalPeriod    =
-  365.256363004, //Days
-	//atmosphereHeight =
-  100000,			//Kerman line
-	//u 							 =
-  3.986004418E14
- },
- {
-	//name             =
-  "Venus",
-	//mass						 =
-  5.97237E24, //5.97237×10^24
-	//radius           =
-  6371000, //mean radius in meters
-	//geeASL           =
-  9.807,		//m/s^2
-	//rotationPeriod   =
-  86164.090, //seconds, sideral day
-	//referenceBody    = celestialBody[0][0];
-	//inclination      =
-  7.155, //degrees
-	//eccentricity     =
-  	0.0167086,
-	//perihelion       =
-  147095000000, //meters
-	//aphelion 		     =
-  152100000000, //meters
-	//orbitalPeriod    =
-  365.256363004, //Days
-	//atmosphereHeight =
-  100000,			//Kerman line
-	//u 							 =
-  3.986004418E14
- },
- {
-	//name             =
-   "Earth",
-	//mass						 =
-   5.97237E24, //5.97237×10^24
-	//radius           =
-   6371000, //mean radius in meters
-	//geeASL           =
-   9.807,		//m/s^2
-	//rotationPeriod   =
-   86164.090, //seconds, sideral day
-	//referenceBody    = celestialBody[0][0];
-	//inclination      =
-   7.155, //degrees
-	//eccentricity     =
-   	0.0167086,
-	//perihelion       =
-   147095000000,//meters
-	//aphelion 		     =
-   152100000000, //meters
-	//orbitalPeriod    =
-   365.256363004, //Days
-	//atmosphereHeight =
-   100000,			//Kerman line
-	//u 							 =
-   3.986004418E14
- }
-};
+static struct List* celestialBodiesHead;
+
+static const double GravConstG = 6.67408e-11;
+
+// static CelestialBody celestialBody[4] = {
+//  {
+// 	//name             =
+//   "Sun",
+// 	//mass						 =
+//   1000000,
+// 	//radius           =
+//   6371E3, //mean radius in meters
+// 	//geeASL           =
+//   9.807,		//m/s^2
+// 	//rotationPeriod   =
+//   86164.090, //seconds, sideral day
+// 	////referenceBody    = celestialBody[0][0];
+// 	//inclination      =
+//   7.155, //degrees
+// 	//eccentricity     =
+//   	0.0167086,
+// 	//perihelion       =
+//   147095000000, //meters
+// 	//aphelion 		     =
+//   152100000000, //meters
+// 	//orbitalPeriod    =
+//   365.256363004, //Days
+// 	//atmosphereHeight =
+//   10000,			//Kerman line
+// 	//u 							 =
+//   1.32712440018E20
+//  },
+//  {
+//   //name             =
+//   "Mercury",
+// 	//mass						 =
+//   5.97237E24, //5.97237×10^24
+// 	//radius           =
+//   6371000, //mean radius in meters
+// 	//geeASL           =
+//   9.807,		//m/s^2
+// 	//rotationPeriod   =
+//   86164.090, //seconds, sideral day
+// 	////referenceBody  = celestialBody[0][0],
+// 	//inclination      =
+//   7.155, //degrees
+// 	//eccentricity     =
+//   	0.0167086,
+// 	//perihelion       =
+//   147095000000, //meters
+// 	//aphelion 		     =
+//   152100000000, //meters
+// 	//orbitalPeriod    =
+//   365.256363004, //Days
+// 	//atmosphereHeight =
+//   100000,			//Kerman line
+// 	//u 							 =
+//   3.986004418E14
+//  },
+//  {
+// 	//name             =
+//   "Venus",
+// 	//mass						 =
+//   5.97237E24, //5.97237×10^24
+// 	//radius           =
+//   6371000, //mean radius in meters
+// 	//geeASL           =
+//   9.807,		//m/s^2
+// 	//rotationPeriod   =
+//   86164.090, //seconds, sideral day
+// 	//referenceBody    = celestialBody[0][0];
+// 	//inclination      =
+//   7.155, //degrees
+// 	//eccentricity     =
+//   	0.0167086,
+// 	//perihelion       =
+//   147095000000, //meters
+// 	//aphelion 		     =
+//   152100000000, //meters
+// 	//orbitalPeriod    =
+//   365.256363004, //Days
+// 	//atmosphereHeight =
+//   100000,			//Kerman line
+// 	//u 							 =
+//   3.986004418E14
+//  },
+//  {
+// 	//name             =
+//    "Earth",
+// 	//mass						 =
+//    5.97237E24, //5.97237×10^24
+// 	//radius           =
+//    6371000, //mean radius in meters
+// 	//geeASL           =
+//    9.807,		//m/s^2
+// 	//rotationPeriod   =
+//    86164.090, //seconds, sideral day
+// 	//referenceBody    = celestialBody[0][0];
+// 	//inclination      =
+//    7.155, //degrees
+// 	//eccentricity     =
+//    	0.0167086,
+// 	//perihelion       =
+//    147095000000,//meters
+// 	//aphelion 		     =
+//    152100000000, //meters
+// 	//orbitalPeriod    =
+//    365.256363004, //Days
+// 	//atmosphereHeight =
+//    100000,			//Kerman line
+// 	//u 							 =
+//    3.986004418E14
+//  }
+// };
 
 double RequestDouble(double min, double max, char* message){
 		printf("**Program Request**\n"
@@ -149,7 +153,9 @@ struct Coordinates* BuildCoordinatesSet(char* message){
 
 CelestialBody* RequestCelestialBody(int celestialBodyClass, char* message){
 	//celestialBodyClass will specify what kind of class if acceptable.
-	//special values may be implemented to specifiy certain classes but not others
+	//special values may be implemented to specifiy certain
+  //classes but not others
+
 	printf("**Program Request**\n"
 					"Celestial Body Required: %s \n"
 					"Class expected: %i \n", message, celestialBodyClass);
@@ -162,15 +168,20 @@ CelestialBody* RequestCelestialBody(int celestialBodyClass, char* message){
 		read = getline(&line, &len, stdin);
     printf("getline contains: %s\n",line);
     strtok(line, "\n");
-		for (int i = 0; i < sizeof(celestialBody)/sizeof(CelestialBody); i++){
-        if(strcmp(line, celestialBody[i].name) == 0){
+		celestialBodiesHead = SetToBeginning(celestialBodiesHead);
+		int numberOfBodies = celestialBodiesHead->previous->position;
+		for (int i = 0; i <= numberOfBodies; i++){
+        if(strcmp(line, celestialBodiesHead->body->name) == 0){
 					printf("**Value Acceptable**\n");
-          printf("Celestial Body choosen: %s\n", celestialBody[i].name);
-          //TODO: CHECK that & works.
-          return &celestialBody[i];
+          printf("Celestial Body choosen: %s\n", celestialBodiesHead->body->name);
+          return celestialBodiesHead->body;
+				}
+				else{
+					celestialBodiesHead = celestialBodiesHead->next;
 				}
 		}
 		printf(KERROR"**ERROR-ERROR-ERROR Value was not acceptable\n"KNORMAL);
+		PrintAllBodies(celestialBodiesHead);
 	}
 }
 
@@ -198,113 +209,112 @@ void PrintHelloMessage(){
   "   .              :\n"
   "    '.            :           .'\n"
   "      '.          :         .'\n"
-  "        '.   .-''''''-.   .'                                   .'':\n"
-  "          '.'          '.'                               .-''''-.'         .---.          .----.        .-'''-.\n"
-  "           :            :                _    _        .'     .' '.    ...'     '...    .'      '.    .'       '.\n"
-  "   .........            .........    o  (_)  (_)  ()   :    .'    :   '..:.......:..'   :        :    :         :   o\n"
-  "           :            :                              :  .'      :       '.....'       '.      .'    '.       .'\n"
-  "            :          :                             .'.'.      .'                        `''''`        `'''''`\n"
-  "             '........'                              ''   ``````\n"
+  "        '.   .-''''''-.   .'      "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE"           .'':\n"
+  "          '.'          '.'        "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE"     .-''''-.'         .---.      "KDATA"    .----.     ""   .-'''-.\n"KEVIDENCE
+  "           :            :         "KNORMAL"     "KEVIDENCE"  _  "KDATA"  _  "KERROR"    "KEVIDENCE"   .'     .' '.    ...'     '...  "KDATA"  .'      '.   "" .'       '.\n"KEVIDENCE
+  "   .........            ......... "KNORMAL"   o "KEVIDENCE" (_) "KDATA" (_) "KERROR" () "KEVIDENCE"   :    .'    :   '..:.......:..' "KDATA"  :        :   "" :         : "KEVIDENCE"  o\n"
+  "           :            :         "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE"   :  .'      :       '.....'     "KDATA"  '.      .'   "" '.       .'\n"KEVIDENCE
+  "            :          :          "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE" .'.'.      .'                    "KDATA"    `''''`     ""   `'''''`\n"KEVIDENCE
+  "             '........'           "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE" ''   ``````\n"
   "            .'    :   '.\n"
   "          .'      :     '.\n"
   "        .'        :       '.\n"
   "      .'          :         '.\n"
-  "         Dana'97  :\n"
   "                  :\n"
   "                  :\n"
-  "                  :\n"KNORMAL);
+  "  Dana97          :\n"
+  "  fma350          :\n"KNORMAL);
 }
 
-//OBJECT CONTROL METHODS
-
+void PrintAllBodies(struct List* list){
+	printf("List of availeable bodies \n\n");
+	celestialBodiesHead = SetToBeginning(celestialBodiesHead);
+	int numberOfBodies = celestialBodiesHead->previous->position;
+	for(int i = 0; i <= numberOfBodies; i++){
+		printf(KDATA"Body number %i:"KEVIDENCE" %s\n"KNORMAL, i, list->body->name);
+	}
+}
 
 //LIST CONTROL METHODS
-ObjectList* CreateObjectList(){
+struct List* CreateListElement(){
   //return a pointer to an alloccated Object List space.
-  ObjectList* list = ( ObjectList*)malloc(sizeof(ObjectList));
-  return list;
-}
-
-struct Element* CreateElement(){
-  //returns a pointer to an alloccated Element space
-  struct Element* element = (struct Element*)malloc(sizeof(struct Element));
+  struct List * element = (struct List*)malloc(sizeof(struct List));
   return element;
 }
 
-struct Object* CreateObject(){
-  struct Object* object = (struct Object*)malloc(sizeof(struct Object));
-  object->name = RequestString("Object Name");
-  object->referenceBody = RequestCelestialBody(0, "Reference body for the object");
-  object->coordinates = BuildCoordinatesSet("Position of the object(meters)");
-  object->speedVector = BuildCoordinatesSet("Velocity vector for the Object (m/s) with respect to the reference Object");
-  object->mass = RequestDouble(-DBL_MAX, DBL_MAX, "Mass of the object");
+CelestialBody* CreateCelestialBody(struct List* holder){
+  struct CelestialBody* celestialBody = (struct CelestialBody*)malloc(sizeof(struct CelestialBody));
+
+  holder->body = (struct CelestialBody*)celestialBody;
+  celestialBody->referenceBody = RequestCelestialBody  (0, "Reference body for the CelestialBody");
+  celestialBody->name          = RequestString         ("CelestialBody Name");
+  celestialBody->mass          = RequestDouble         (-DBL_MAX, DBL_MAX, "Mass of the CelestialBody");
+  celestialBody->coordinates   = BuildCoordinatesSet   ("Position of the CelestialBody(meters)");
+  celestialBody->speedVector   = BuildCoordinatesSet   ("Velocity vector for the CelestialBody (m/s) with respect to the reference CelestialBody");
+  celestialBody->u = (celestialBody->mass)*GravConstG;
 }
 
-int ListIsEmpty(ObjectList* objectList){
-  if (objectList->firstElement == NULL)
+//FIXME
+int IsListEmpty(struct List* list){
+	if (!list) return 1;
+	//TODO: TOTEST
+  if ((list->next == list )&&(list->previous == list))
     return 1;
   else
     return 0;
 }
 
-void PushElement(ObjectList* objectList, struct Element* newElement){
-  if(ListIsEmpty(objectList)){
-    objectList->firstElement  = newElement;
-    objectList->lastElement   = newElement;
+void PushElement(struct List* listHead, struct List* newElement){
+  if(!listHead){
+    newElement->position = 0;
+		newElement->next = newElement;
+		newElement->previous = newElement;
+    listHead  = newElement;
   }
   else{
-    objectList->lastElement->next = newElement;
-    objectList->lastElement = newElement;
+    newElement->position = listHead->previous->position+1;
+
+    newElement->next = listHead;
+    newElement->previous = listHead->previous;
+    listHead->previous->next = newElement;
+    listHead->previous = newElement;
   }
 }
 
-void PopElement(ObjectList* objectList){
-  struct Element*p = objectList->firstElement->next;
-  free(objectList->firstElement);
-  objectList->firstElement = p;
+void UpdatePosition(struct List* list){
+  while(list->next->position != 0){
+    if(list->position != (list->next->position-1)){
+      list->next->position = list->position+1;
+    }
+    list = list->next;
+  }
 }
 
-void NextCurrentObject(ObjectList* objectList){
-  if(objectList->currentElement == NULL){
-    objectList->currentElement = objectList->firstElement;
+struct List* SetToBeginning(struct List* list){
+	while(list->position != 0){
+		list = list->next;
+	}
+	return list;
+}
+
+struct List* RemoveList(struct List* listHead){
+  if(!listHead){
+    printf("Nothing to remove");
+    return NULL;
+  }
+  else if((listHead->next==NULL)||(listHead->previous==NULL)){
+    free(listHead->body);
+    free(listHead);
+    return NULL;
   }
   else{
-    objectList->currentElement = objectList->currentElement->next;
+    //TODO FIXME
+    listHead->previous->next = listHead->next;
+    listHead->next->previous = listHead->previous;
+    struct List * p = listHead->previous;
+    free(listHead->body);
+    free(listHead);
+    UpdatePosition(p);
+    return p;
   }
-}
-
-struct Object * GetCurrentObject(ObjectList* objectList){
-  return objectList->currentElement->object;
-}
-
-void ResetCurrentObject(ObjectList* objectList){
-  //reset the current object pointer to NULL, so that it
-  //will output the first element of the Queue when
-  // GetCurrentObject() will be called
-  objectList->currentElement = NULL;
-}
-
-int SeekObject(ObjectList* objectList, struct Object* objectToSeek){
-  //seeks an object and positions the currentElement on the
-  //containing element, returning 0.
-  //if the object cannot be found, returns -1.
-  ResetCurrentObject(objectList);
-  struct Object* toCompare;
-  while((toCompare = GetCurrentObject) != NULL){
-    if(strcmp(objectList->currentElement->object->name, objectToSeek->name)==0){
-      //obj found, currentElement points to it.
-      //printf("OBJECT FOUND!")
-      return 0;
-    }
-    else{
-      //increment the currentElement;
-      NextCurrentObject(objectList);
-    }
-  }
-  //list does not contain such an element!
-  ResetCurrentObject(objectList);
-  return -1;
-
-
-
 }

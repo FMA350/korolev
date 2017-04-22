@@ -5,6 +5,8 @@
 //exit defined in Various.h
 #define EXIT 1
 
+#define ERROR_FILE_DOES_NOT_EXIST          44
+
 #define ERROR_WRONG_ARGUMENT_TYPE    96
 #define ERROR_WRONG_ARGUMENT_VALUE   97
 #define ERROR_TOO_MANY_ARGUMENTS     98

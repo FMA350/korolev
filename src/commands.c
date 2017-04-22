@@ -78,5 +78,4 @@ int OrbitalVelocityCommand(){
 
 int CALCULATE_DELTA_V(){
 	//TODO
-
 }
