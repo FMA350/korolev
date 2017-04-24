@@ -1,8 +1,10 @@
 #ifndef DATA
 #define DATA
 
-int LoadSimulationData();
+int LoadSimulationData(char *str);
 
-int LoadPersonalData();
+int SaveSimulationData(char *str);
+
+//int LoadPersonalData(char *str);
 
 #endif
