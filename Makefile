@@ -12,7 +12,7 @@ LFLAGS = -lm -lpthread
 EXECPATH = builds/
 SRCPATH  = src/
 
-CFILES   = main.c error.c commands.c orbitalFunctions.c various.c
+CFILES   = main.c error.c commands.c orbitalFunctions.c various.c data.c
 SOURCES  = $(addprefix $(SRCPATH), $(CFILES))
 OBJECTS  = $(SOURCES:.c=.o)
 

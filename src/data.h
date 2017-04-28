@@ -1,9 +1,9 @@
 #ifndef DATA
 #define DATA
 
-int LoadSimulationData(char *str);
+int LoadSimulationData(char * simulationName, struct List** list);
 
-int SaveSimulationData(char *str);
+int SaveSimulationData(char * simulationName, struct List** list);
 
 //int LoadPersonalData(char *str);
 

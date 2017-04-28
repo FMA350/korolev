@@ -4,121 +4,11 @@
 #include <float.h>
 
 #include "various.h"
-
-static struct List* celestialBodiesHead;
+#include "error.h"
+#include "orbitalFunctions.h"
 
 static const double GravConstG = 6.67408e-11;
-
-// static CelestialBody celestialBody[4] = {
-//  {
-// 	//name             =
-//   "Sun",
-// 	//mass						 =
-//   1000000,
-// 	//radius           =
-//   6371E3, //mean radius in meters
-// 	//geeASL           =
-//   9.807,		//m/s^2
-// 	//rotationPeriod   =
-//   86164.090, //seconds, sideral day
-// 	////referenceBody    = celestialBody[0][0];
-// 	//inclination      =
-//   7.155, //degrees
-// 	//eccentricity     =
-//   	0.0167086,
-// 	//perihelion       =
-//   147095000000, //meters
-// 	//aphelion 		     =
-//   152100000000, //meters
-// 	//orbitalPeriod    =
-//   365.256363004, //Days
-// 	//atmosphereHeight =
-//   10000,			//Kerman line
-// 	//u 							 =
-//   1.32712440018E20
-//  },
-//  {
-//   //name             =
-//   "Mercury",
-// 	//mass						 =
-//   5.97237E24, //5.97237×10^24
-// 	//radius           =
-//   6371000, //mean radius in meters
-// 	//geeASL           =
-//   9.807,		//m/s^2
-// 	//rotationPeriod   =
-//   86164.090, //seconds, sideral day
-// 	////referenceBody  = celestialBody[0][0],
-// 	//inclination      =
-//   7.155, //degrees
-// 	//eccentricity     =
-//   	0.0167086,
-// 	//perihelion       =
-//   147095000000, //meters
-// 	//aphelion 		     =
-//   152100000000, //meters
-// 	//orbitalPeriod    =
-//   365.256363004, //Days
-// 	//atmosphereHeight =
-//   100000,			//Kerman line
-// 	//u 							 =
-//   3.986004418E14
-//  },
-//  {
-// 	//name             =
-//   "Venus",
-// 	//mass						 =
-//   5.97237E24, //5.97237×10^24
-// 	//radius           =
-//   6371000, //mean radius in meters
-// 	//geeASL           =
-//   9.807,		//m/s^2
-// 	//rotationPeriod   =
-//   86164.090, //seconds, sideral day
-// 	//referenceBody    = celestialBody[0][0];
-// 	//inclination      =
-//   7.155, //degrees
-// 	//eccentricity     =
-//   	0.0167086,
-// 	//perihelion       =
-//   147095000000, //meters
-// 	//aphelion 		     =
-//   152100000000, //meters
-// 	//orbitalPeriod    =
-//   365.256363004, //Days
-// 	//atmosphereHeight =
-//   100000,			//Kerman line
-// 	//u 							 =
-//   3.986004418E14
-//  },
-//  {
-// 	//name             =
-//    "Earth",
-// 	//mass						 =
-//    5.97237E24, //5.97237×10^24
-// 	//radius           =
-//    6371000, //mean radius in meters
-// 	//geeASL           =
-//    9.807,		//m/s^2
-// 	//rotationPeriod   =
-//    86164.090, //seconds, sideral day
-// 	//referenceBody    = celestialBody[0][0];
-// 	//inclination      =
-//    7.155, //degrees
-// 	//eccentricity     =
-//    	0.0167086,
-// 	//perihelion       =
-//    147095000000,//meters
-// 	//aphelion 		     =
-//    152100000000, //meters
-// 	//orbitalPeriod    =
-//    365.256363004, //Days
-// 	//atmosphereHeight =
-//    100000,			//Kerman line
-// 	//u 							 =
-//    3.986004418E14
-//  }
-// };
+extern struct List * celestialBodiesHead;
 
 double RequestDouble(double min, double max, char* message){
 		printf("**Program Request**\n"
@@ -140,38 +30,35 @@ double RequestDouble(double min, double max, char* message){
 		}
 }
 
-char* RequestString(char* message){
+char* RequestString(char* message, int nullIsAcceptable){
   printf("**Program Request**\n"
-					"String requeired Required: %s \n", message);
+					"String Required: %s \n", message);
   char *line = NULL;
   size_t len = 64;
   ssize_t read;
   double value;
+  while(1){
   printf("_-_-_ Insert value: ");
   read = getline(&line, &len, stdin);
-  printf("getline contains: %s\n",line);
-  strtok(line, "\n");
-  return line;
+	if(strlen(line)!=1){
+		line = strtok(line, "\n");
+		if((nullIsAcceptable)&&strcmp(line,"null") == 0){
+			return NULL;
+		}
+
+		printf(KOUTPUT"getline contains:"KDATA" %s\n"KNORMAL,line);
+		return line;
+	}
+	printf(KERROR"**ERROR-ERROR-ERROR Value was not acceptable\n"KNORMAL);
+	}
 }
 
-void RequestAddCelestialBody(){
-	CelestialBody *referenceBody = RequestCelestialBody  (0, "Reference body for the CelestialBody");
-	char *name  = RequestString("CelestialBody Name");
-	double mass = RequestDouble(-DBL_MAX, DBL_MAX, "Mass of the CelestialBody");
-	Coordinates *positionVector = RequestCoordinateSet("Position of the CelestialBody(meters)");
-	Coordinates *speedVector    = RequestCoordinateSet("Velocity vector for the CelestialBody (m/s)");
-	struct List* list = CreateListElement();
-	CreateCelestialBody(list, referenceBody, name, mass, positionVector, speedVector);
-	PushElement(celestialBodiesHead, list);
-}
-
-CelestialBody* RequestCelestialBody(char* message){
+CelestialBody* RequestCelestialBody(char* message, struct List *list){
 	printf("**Program Request**\n"
 					"Celestial Body Required: %s \n", message);
-		PrintAllBodies(celestialBodiesHead);
-	  char *line = RequestString("CelestialBody name, type enter for no reference body.");
+	  char *line = RequestString("Insert the name of the celestial body you are looking for",1);
 		CelestialBody* celestialBody;
-		celestialBody=GetCelestialBody(line)
+		celestialBody = GetCelestialBody(line, list);
     return celestialBody;
 }
 
@@ -187,17 +74,38 @@ struct Coordinates* RequestCoordinateSet(char* message){
 }
 
 
-CelestialBody* GetCelestialBody(char* name){
-	celestialBodiesHead = SetToBeginning(celestialBodiesHead);
-	int numberOfBodies = celestialBodiesHead->previous->position;
+CelestialBody* GetCelestialBody(char* name,struct List* list){
+	if(!list) return NULL;
+	if(!name) return NULL;
+	SetToBeginning(&list);
+	int numberOfBodies = list->previous->position;
 	for (int i = 0; i <= numberOfBodies; i++){
-		if(strcmp(name, celestialBodiesHead->body->name) == 0){
-			return celestialBodiesHead->body;
+		if(strcmp(name, list->body->name) == 0){
+			printf(KOUTPUT"Body %s found!\n"KNORMAL,name);
+			return list->body;
 		}
 		else{
-			celestialBodiesHead = celestialBodiesHead->next;
+			list = list->next;
 		}
 	}
+	printf(KERROR"Could not find specified body %s, returning null\n"KNORMAL, name);
+	return NULL;
+}
+
+struct List * GetList(char *name, struct List *list){
+	SetToBeginning(&list);
+	if(!list) return NULL;
+	int numberOfBodies = list->previous->position;
+	for (int i = 0; i <= numberOfBodies; i++){
+		if(strcmp(name, list->body->name) == 0){
+			printf(KOUTPUT"Body %s found!\n"KNORMAL,name);
+			return list;
+		}
+		else{
+			list = list->next;
+		}
+	}
+	printf(KERROR"Could not find specified list with body %s, returning null"KNORMAL, name);
 	return NULL;
 }
 
@@ -232,17 +140,51 @@ void PrintHelloMessage(){
 
 void PrintAllBodies(struct List* list){
 	printf("List of availeable bodies \n\n");
-	celestialBodiesHead = SetToBeginning(celestialBodiesHead);
-	int numberOfBodies = celestialBodiesHead->previous->position;
-	for(int i = 0; i <= numberOfBodies; i++){
-		printf(KDATA"Body number %i:"KEVIDENCE" %s\n"KNORMAL, i, list->body->name);
+	if(!list){
+		printf("No bodies are present!\n");
+		return;
 	}
+	SetToBeginning(&list);
+	int numberOfBodies = list->previous->position;
+	for(int i = 0; i <= numberOfBodies; i++){
+		if(list->body->referenceBody!=NULL){
+		printf(KDATA"Body number %i:"KEVIDENCE" %s, referenceBody: %s mass: %G\n"KNORMAL, i, list->body->name, list->body->referenceBody->name, list->body->mass);
+		}
+		else{
+			printf(KDATA"Body number %i:"KEVIDENCE" %s, referenceBody: N.A. mass: %G\n"KNORMAL, i, list->body->name, list->body->mass);
+		}
+		printf("list->previous = %s, list->next = %s\n\n",list->previous->body->name, list->next->body->name);
+
+		list = list->next;
+	}
+}
+
+void PrintDetails(char* name, struct List* list){
+	CelestialBody *body = GetCelestialBody(name, list);
+	if(!body){
+		printf(KERROR"body could not be found!\n"KNORMAL);
+		return;
+	}
+	printf("Mass of the object: %G\n",body->mass );
+
+	printf("Position vector:\n");
+	printf("x = %G\n",body->coordinates->x);
+	printf("x = %G\n",body->coordinates->y);
+	printf("x = %G\n",body->coordinates->z);
+	printf("Velocity vector:\n");
+	printf("x = %G\n",body->speedVector->x);
+	printf("x = %G\n",body->speedVector->y);
+	printf("x = %G\n",body->speedVector->z);
+	printf("Constant U:%G\n", body->u );
+
 }
 
 //STRUCT CREATION METHODS
 struct List* CreateListElement(){
   //return a pointer to an alloccated Object List space.
   struct List * element = (struct List*)malloc(sizeof(struct List));
+  element->next = element;
+  element->previous = element;
   return element;
 }
 
@@ -253,17 +195,17 @@ void CreateCelestialBody(struct List* holder, CelestialBody* referenceBody,
   //Links the newly created CelestialBody to the holder List element.
 
   struct CelestialBody* celestialBody = (struct CelestialBody*)malloc(sizeof(struct CelestialBody));
-
   celestialBody->referenceBody = referenceBody;
-  celestialBody->name          = name;
+  celestialBody->name = (char*)malloc(sizeof(char*)*512);
+  strcpy(celestialBody->name, name);
   celestialBody->mass          = mass;
   celestialBody->coordinates   = positionVector;
   celestialBody->speedVector   = speedVector;
   celestialBody->u = (celestialBody->mass)*GravConstG;
-	holder->body = celestialBody;
+  holder->body = celestialBody;
 }
 
-struct Coordinates* createCoordinateSet(double x, y, z){
+struct Coordinates* createCoordinateSet(double x,double y,double z){
  	struct Coordinates *coordinates = (struct Coordinates*)malloc(sizeof(struct Coordinates));
 	coordinates->x = x;
 	coordinates->y = y;
@@ -283,57 +225,87 @@ int IsListEmpty(struct List* list){
     return 0;
 }
 
-void PushElement(struct List* listHead, struct List* newElement){
-  if(!listHead){
-    newElement->position = 0;
-		newElement->next = newElement;
-		newElement->previous = newElement;
-    listHead  = newElement;
+int PushElement(struct List **listHead, struct List **newElement){
+  if(!*listHead){
+		printf("PushElement: celestialBodiesHead is empty\n");
+    	(*newElement)->position = 0;
+		(*newElement)->next = (*newElement); //TODO FIXME
+		(*newElement)->previous = (*newElement);
+		(*listHead) = (*newElement);
+    return 0;
   }
   else{
-    newElement->position = listHead->previous->position+1;
+	printf("PushElement: celestialBodiesHead has elements\n");
+		SetToBeginning(listHead);
+    	(*newElement)->position = (*listHead)->previous->position+1;
+		(*newElement)->next = (*listHead);
+    	(*newElement)->previous = (*listHead)->previous;
 
-    newElement->next = listHead;
-    newElement->previous = listHead->previous;
-    listHead->previous->next = newElement;
-    listHead->previous = newElement;
+    (*listHead)->previous->next = *newElement;
+		(*listHead)->previous 	= *newElement;
+		return 0;
   }
 }
 
-void UpdatePosition(struct List* list){
-  while(list->next->position != 0){
-    if(list->position != (list->next->position-1)){
-      list->next->position = list->position+1;
-    }
-    list = list->next;
-  }
-}
-
-struct List* SetToBeginning(struct List* list){
-	while(list->position != 0){
-		list = list->next;
+void UpdatePosition(struct List **list){
+	//if list is null
+	if(!*list) return;
+	//if list has only 1 object
+	if((*list)->next == (*list)){
+		(*list)->position = 0;
+		return;
 	}
-	return list;
+	//if root was removed, we are now pointing to the last element.
+	//next one will be the new root.
+	if((*list)->next->position <= (*list)->position){
+		(*list)->next->position = 0;
+		(*list) = (*list)->next; //go to root element
+	}
+    while((*list)->next->position != 0){
+    	if((*list)->position+1 != ((*list)->next->position)){
+			printf("update position of %s\n",(*list)->next->body->name);
+      		(*list)->next->position = (*list)->position+1;
+    	}
+    (*list) = (*list)->next;
+  }
+}
+//FIXME
+void SetToBeginning(struct List **list){
+	if(!*list) return;
+	while((*list)->position != 0){
+		printf("looking for the beginning...\n");
+		//PROBLEM IS HERE
+    (*list) = (*list)->next;
+	}
+	return;
 }
 
-struct List* RemoveList(struct List* listHead){
-  if(!listHead){
+//FIXME
+int RemoveList(struct List** list){
+  if(!list){
     printf("Nothing to remove");
-    return NULL;
+    return 0;
   }
-  else if((listHead->next==NULL)||(listHead->previous==NULL)){
-    free(listHead->body);
-    free(listHead);
-    return NULL;
+  else if((*list)->next == (*list)){
+		printf("Single element in the list\n");
+    free((*list)->body);
+		(*list)->next = NULL;
+		(*list)->previous = NULL;
+    free(*list);
+		//free(list);
+		(*list) = NULL;
+    return 0;
   }
   else{
-    //TODO FIXME
-    listHead->previous->next = listHead->next;
-    listHead->next->previous = listHead->previous;
-    struct List * p = listHead->previous;
-    free(listHead->body);
-    free(listHead);
-    UpdatePosition(p);
-    return p;
+		//FIXME
+		printf("multiple elements in the list\n");
+    (*list)->previous->next = (*list)->next;
+    (*list)->next->previous = (*list)->previous;
+    struct List *temp = (*list)->previous;
+    free((*list)->body);
+    free((*list));
+	(*list) = temp;
+    UpdatePosition(list);
+    return 0;
   }
 }

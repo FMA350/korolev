@@ -6,9 +6,7 @@
 #include "error.h"
 #include "various.h"
 
-
-
-
+struct List* celestialBodiesHead = NULL;
 char* ReadLine();
 
 int main(){
@@ -21,7 +19,7 @@ int main(){
     pthread_t td;
     //create a quick struct that contains both the returnCode pointer and the line value.
     ThreadData data; //ThreadData is defined in various.h
-      data.returnCode = &returnCode;
+      data.returnCode = returnCode;
       data.line = line;
     printf("%s\n",data.line);
 

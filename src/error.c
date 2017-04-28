@@ -8,7 +8,7 @@
 
 
 
-void ErrorHandling(int* ec){
+void ErrorHandling(int ec){
 //Error handling function. it is executed every time the ExecuteCommand function returns a zero.
 int errorCode = (int)ec;
   switch(errorCode){

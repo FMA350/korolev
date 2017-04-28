@@ -9,53 +9,10 @@
 #define KDATA     "\x1B[34m"  //blue
 #define KEVIDENCE "\x1B[33m"  //yellow
 
-// typedef struct Engine{
-// 		double siAsl;
-// 		double trustAsl;
-// 		double siVacuum;
-// 		double trustVacuum;
-// 	} Engine;
-// typedef struct Stage{
-// 		Engine engine;
-// 		double fuelWeight; // should be divided into oxidizer and oxidant/fuel
-// 		double emptyWeight; //weight of the
-// 		//TODO: much more!
-// 	} Stage;
-// typedef struct Vehicle{
-// 		char * name;
-// 		Stage *stage;
-// 		//TODO: add all the position values. Orientation will be neglected
-// 		//since it is not the purpose of this software to simulate a flight
-// 		//but merely to design routes.
-// 	} Vehicle;
-//
-// 	//TODO: TEST
-//
-// 	struct Coordinates{
-// 		double x, y , z;
-// 	};
-//
-// 	struct Object{
-// 		//int id;
-// 		char* name;
-// 		CelestialBody* referenceBody;
-// 		struct Coordinates* coordinates;
-// 		struct Coordinates* speedVector;
-// 		double mass;
-// 	};
-//
-// 	struct Element{
-// 		//list object. Every object used in the simulation will be of type Object
-// 		struct Element* next;
-// 		struct Object * object;
-// 	};
-//
-// 	//TODO: END TESTING
-
-//static const double GravConstG;
-
 const char * DELIMITER;
 const char * WELCOME_TEXT;
+
+//static struct List* celestialBodiesHead;
 
 struct Coordinates{
 	double x;
@@ -72,7 +29,8 @@ struct List{
 
 	typedef struct ThreadData{
 		char * line;
-		int  * returnCode;
+		//int  * returnCode;
+		int returnCode;
 	} ThreadData;
 
 	typedef struct CelestialBody{
@@ -97,32 +55,49 @@ struct List{
 		//double atmosphereHeight;
 	} CelestialBody;
 
-/*****Function Prototypes*****/
+/*****Request Functions Prototypes*****/
 
 double RequestDouble(double min, double max, char * message);
 
-CelestialBody* RequestCelestialBody(int celestialBodyClass, char * message);
+CelestialBody* RequestCelestialBody(char * message, struct List *list);
 
-char* RequestString(char* message);
+char* RequestString(char* message, int nullIsAcceptable);
+
+struct Coordinates* RequestCoordinateSet(char* message);
+
+CelestialBody* GetCelestialBody(char* name, struct List *list);
+
+struct List * GetList(char *name, struct List *list);
+
+/***** Print Functions Prototypes*****/
 
 void PrintHelloMessage();
 
 void PrintAllBodies(struct List* list);
 
+void PrintDetails(char* name, struct List* list);
+
+/***** List Functions Prototypes*****/
+
 struct List* CreateListElement();
 
-// struct Element* CreateElement();
-//
-CelestialBody* CreateCelestialBody(struct List* holder);
+
+
+void CreateCelestialBody(struct List* holder, CelestialBody* referenceBody,
+	 																 char* name, double mass,
+																	 struct Coordinates* positionVector,
+																	 struct Coordinates* speedVector);
+
+struct Coordinates* createCoordinateSet(double x,double y,double z);
 
 int IsListEmpty(struct List* list);
 
-void PushElement(struct List* listHead, struct List* newElement);
+int PushElement(struct List **listHead, struct List **newElement);
 
-void UpdatePosition(struct List* list);
+void UpdatePosition(struct List **list);
 
-struct List* SetToBeginning(struct List* list);
+void SetToBeginning(struct List **list);
 
-struct List* RemoveList(struct List* listHead);
+int RemoveList(struct List **list);
 
 #endif
