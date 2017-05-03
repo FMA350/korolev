@@ -165,17 +165,17 @@ void PrintDetails(char* name, struct List* list){
 		printf(KERROR"body could not be found!\n"KNORMAL);
 		return;
 	}
-	printf("Mass of the object: %G\n",body->mass );
+	printf(KOUTPUT"Mass of the object:"KDATA" %G kg\n",body->mass );
 
-	printf("Position vector:\n");
+	printf(KOUTPUT"Position vector (m):\n"KDATA);
 	printf("x = %G\n",body->coordinates->x);
 	printf("x = %G\n",body->coordinates->y);
 	printf("x = %G\n",body->coordinates->z);
-	printf("Velocity vector:\n");
+	printf(KOUTPUT"Velocity vector(m/s):\n"KDATA);
 	printf("x = %G\n",body->speedVector->x);
 	printf("x = %G\n",body->speedVector->y);
 	printf("x = %G\n",body->speedVector->z);
-	printf("Constant U:%G\n", body->u );
+	printf(KOUTPUT"Constant U:"KDATA"%G\n"KNORMAL, body->u );
 
 }
 

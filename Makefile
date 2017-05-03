@@ -6,13 +6,14 @@
 
 CC = gcc
 LL = gcc
-CFLAGS = -c -include 'stdlib.h' -include 'pthread.h' -include 'stdio.h' -I $(SRCPATH) -I .
+CFLAGS = -c -include 'stdlib.h' -include 'pthread.h' -include 'stdio.h' -include 'unistd.h' -I $(SRCPATH) -I .
 LFLAGS = -lm -lpthread
 
 EXECPATH = builds/
 SRCPATH  = src/
 
-CFILES   = main.c error.c commands.c orbitalFunctions.c various.c data.c
+CFILES   = main.c error.c commands.c orbitalFunctions.c various.c data.c \
+ 		   simulation.c monitor.c tlist.c suspend.c
 SOURCES  = $(addprefix $(SRCPATH), $(CFILES))
 OBJECTS  = $(SOURCES:.c=.o)
 

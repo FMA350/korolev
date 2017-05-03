@@ -97,7 +97,7 @@ int LoadSimulationData(char * simulationName, struct List** list){
     struct List* element = CreateListElement();
     CreateCelestialBody(element, referenceBody, name, mass, positionVector, speedVector);
     PushElement(list, &element);
-    printf("Object loaded: %s\n",(*list)->body->name);
+    printf("Object loaded: %s\n",element->body->name);
 }
   printf("simulation loaded\n");
   return 0;

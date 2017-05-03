@@ -76,7 +76,7 @@ void* ExecuteCommand(void* d){
 		data->returnCode = (int)error;
 		return NULL;
 	}
-	if(strcmp(commandToken, SHOW_DETAILS) == 0){
+	if(strcmp(commandToken, INFO) == 0){
 	 	PrintDetails(RequestString("Name of the planet",0),celestialBodiesHead);
 		data->returnCode = 0;
 		return NULL;
@@ -123,12 +123,13 @@ int CalculateDeltaV(){
 }
 
 void PrintAllCommands(){
-	printf(KEVIDENCE"List of all commands:");
+	printf(KEVIDENCE"		***List of all commands***\n");
 	printf(KEVIDENCE"CALCULATE_ORBITAL_VELOCITY "KDATA"= %s",CALCULATE_ORBITAL_VELOCITY);
 	printf(KEVIDENCE"EXIT_COMMAND "KDATA"= %s",EXIT_COMMAND);
-	printf(KEVIDENCE"HELP "KDATA"= %s",HELP);
+	printf(KEVIDENCE"HELP: displays this guide "KDATA"= %s",HELP);
 	printf(KEVIDENCE"CALCULATE_DELTA_V "KDATA"= %s",CALCULATE_DELTA_V);
-	printf(KEVIDENCE"SHOW_CELESTIAL_OBJECTS "KDATA"= %s",SHOW_CELESTIAL_OBJECTS);
+	printf(KEVIDENCE"SHOW_CELESTIAL_OBJECTS: displays all the objects in the main list "KDATA"= %s",SHOW_CELESTIAL_OBJECTS);
+	printf(KEVIDENCE"INFO: shows details of an object, like its coordinates vector "KDATA"= %s",INFO);
 	printf(KEVIDENCE"SAVE_SIMULATION "KDATA"= %s",SAVE_SIMULATION);
 	printf(KEVIDENCE"LOAD_SIMULATION "KDATA"= %s",LOAD_SIMULATION);
 	printf(KEVIDENCE"ADD_CELESTIAL_BODY"KDATA"=%s"KNORMAL,ADD_CELESTIAL_BODY);

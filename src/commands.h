@@ -12,7 +12,7 @@
 #define LOAD_SIMULATION				 			"load\n"
 #define ADD_CELESTIAL_BODY		 			"addBody\n"
 #define REMOVE_CELESTIAL_BODY				"removeBody\n"
-#define SHOW_DETAILS                        "info\n"
+#define INFO                        "info\n"
 
 void* ExecuteCommand(void* line);
 
