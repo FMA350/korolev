@@ -42,9 +42,14 @@ struct monitor {
 typedef struct monitor *monitor;
 
 struct condition {
+	int lock;
+	int value;
+
 	monitor m;
 	struct tlist *q;
 };
+
+
 
 typedef struct condition *condition;
 
@@ -85,60 +90,41 @@ void condition_destroy(condition c) {
 	free(c);
 }
 
+int condition_check(condition c, int checkvalue){
+	if(&c->value == checkvalue){
+		return 1;
+	}
+	return 0;
+}
+
 void condition_wait(condition c) {
 	//printf("wait %p\n",c);
+	c.value++;
 	tlist_enqueue(&c->q, pthread_self());
 	monitor_exit(c->m);
 	suspend();
 }
 
-void condition_signal(condition c) {
-	//printf("signal %p\n",c);
-	while (!tlist_empty(c->q)) {
-		monitor m = c->m;
-		pthread_t t = tlist_dequeue(&c->q);
-		wakeup(t);
-	}
+void simulation_lock_on(condition c){
+	c.flag = 1;
 }
 
+void simulation_lock_off(condition c){
+	c.flag = 0;
+}
 
-
-// struct Monitor{
-//     pthread_t simulation_lock;  //used to stop the simulation from the main program (example for command by the user)
-//     sem_t * lock;  //used to block the access at the critical section
-//     sem_t * write; //used as a queue for the processes
-//     int waiting;
-//     int numberOfThreads;
-// }
-//
-// void mon_initialize(struct Monitor *monitor, int numberOfThreads){
-//     sem_init(monitor->lock, 0 ,1);
-//     sem_init(monitor->write, 0 ,0);
-//     monitor->numberOfThreads = numberOfThreads;
-//     simulation_lock = 1;
-// }
-//
-//
-// void mon_destroy(struct Monitor *monitor){
-//
-//     sem_destroy(monitor->lock);
-//     sem_destroy(monitor->write);
-//     free(monitor);
-// }
-//
-// void mon_wait(struct Monitor *monitor){
-//
-//     sem_wait(monitor->lock);
-//     if(waiting == (numberOfThreads-1){
-//         waiting = 0;
-//         for (int i = 0; i < numberOfThreads-1; i++){
-//         sem_post(monitor->write);
-//         }
-//         sem_post(monitor->lock);
-//     }
-//     else{
-//         waiting++;
-//         sem_post(monitor->lock);
-//         sem_wait(monitor->write);
-//     }
-// }
+void condition_signal(condition c) {
+	//printf("signal %p\n",c);
+	if(!c.lock){
+		while (!tlist_empty(c->q)) {
+			&c.value = 0;
+			pthread_t t = tlist_dequeue(&c->q);
+			wakeup(t);
+		}
+	}
+	else{
+		tlist_enqueue(&c->q, pthread_self());
+		monitor_exit(c->m);
+		suspend();
+	}
+}

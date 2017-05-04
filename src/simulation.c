@@ -1,79 +1,95 @@
+double timeStep = 216000; //seconds
 
-int numberOfThreads;
-
-double timeStep;
-
-time_t SimulationTime;
-
-int simulationIsLocked = 0;
-
+//time_t SimulationTime;
 
 // simulation methods
 
+void Save(struct Coordinates* coordinates, struct Coordinates* speedVector, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector){
+    coordinates->x = newCoordinates->x;
+    coordinates->y = newCoordinates->y;
+    coordinates->z = newCoordinates->x;
 
-void SimpleSimulation(struct List** object, struct Monitor *mon_computation_section, struct Monitor *mon_save_section, int n_thread){
+    speedVector->x = newSpeedVector->x;
+    speedVector->y = newSpeedVector->y;
+    speedVector->z = newSpeedVector->x;
+}
+
+void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* bodyPosition, struct Coordinates * newAcceleration, double u){
+
+    double rx = bodyPosition->x -  myPosition->x;
+    double ry = bodyPosition->y -  myPosition->y;
+    double rz = bodyPosition->z -  myPosition->z;
+    //total distance
+    double distance = pow(rx*rx+ry*ry+rz*rz,3/2);
+
+    newAcceleration->x += ((*object)->body->u * rx)/distance;
+    newAcceleration->y += ((*object)->body->u * ry)/distance;
+    newAcceleration->z += ((*object)->body->u * rz)/distance;
+}
 
 
-    Coordinates* objectSpeedVector      = (*object)->body->speedVector;
-    Coordinates* objectCoordinates      = (*object)->body->coordinates;
-    int position                        = (*object)->position;
-    Coordinates* newSpeedVector = createCoordinateSet(  (*object)->body->speedVector->x,
-                                                        (*object)->body->speedVector->y,
-                                                        (*object)->body->speedVector->z);
+void Step(struct List** object, struct monitor *mon, struct condition computation_section, struct condition saving_section, void *method, int numberOfThreads){
 
-    Coordinates* newCoordinates = createCoordinateSet(  (*object)->body->coordinates->x,
-                                                        (*object)->body->coordinates->y,
-                                                        (*object)->body->coordinates->z);
+        Coordinates* objectSpeedVector      = (*object)->body->speedVector;
+        Coordinates* objectCoordinates      = (*object)->body->coordinates;
 
-    Coordinates* newAcceleration = createCoordinateSet(0,0,0);
+        Coordinates* newSpeedVector = createCoordinateSet(  (*object)->body->speedVector->x,
+                                                            (*object)->body->speedVector->y,
+                                                            (*object)->body->speedVector->z);
+
+        Coordinates* newCoordinates = createCoordinateSet(  (*object)->body->coordinates->x,
+                                                            (*object)->body->coordinates->y,
+                                                            (*object)->body->coordinates->z);
+
+        Coordinates* newAcceleration = createCoordinateSet(0,0,0);
 
     while(1){
-    //simulationLock
-    monitor_enter();
-    if(simulationIsLocked){
-        condition_wait(resumeSimulation);
-    }
-    else{
-        monitor_exit()
-    }
-    monitor_enter();
+        //simulationLock
+        monitor_enter(mon);
+        if(condition_check(computation_section, numberOfThreads-1)){
+            condition_signal(computation_section);
+            monitor_exit(mon);
+        }
+        else{
+            condition_wait(computation_section);
+        }
+        //FIXME
+        method(object, newCoordinates, newSpeedVector, objectCoordinates, newAcceleration); //calculates new accelerations
 
-        //iterates untill we get to the first object
+        monitor_enter(mon);
+        if(condition_check(saving_section, numberOfThreads-1)){
+            condition_signal(saving_section);
+            monitor_exit(mon);
+        }
+        else{
+            condition_wait(saving_section);
+        }
+        save(objectCoordinates, objectSpeedVector, newCoordinates, newSpeedVector);
+    }
+}
 
-    mon_wait(mon_computation_section);
+void SimpleSimulation(struct List** object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector, struct Coordinates* objectCoordinates,struct Coordinates* newAcceleration){
+    //it does not conserve the energy!
+    int position = (*object)->position;
+    (*object) = (*object)->next;
     while((*object)->position != position){
-
-        // distances for each axis at moment zero.
-        double rx = objectCoordinates->x -  (*object)->body->coordinates->x;
-        double ry = objectCoordinates->y -  (*object)->body->coordinates->y;
-        double rz = objectCoordinates->z -  (*object)->body->coordinates->z;
-        //total distance
-        double distance = pow(rx*rx+ry*ry+rz*rz,3/2);
-
-        //accelleration values for each axis from starting position
-        newAcceleration->x += ((*object)->body->u * rx)/distance;
-        newAcceleration->y += ((*object)->body->u * ry)/distance;
-        newAcceleration->z += ((*object)->body->u * rz)/distance;
+        NewtonGravitation(objectCoordinates, (*object)->body->coordinates, newAcceleration, (*object)->body->u);
+        (*object) = (*object)->next;
         }
         //new coordinates using the old value for the speed.
         newCoordinates->x += (*object)->body->speedVector->x *timeStep;
         newCoordinates->y += (*object)->body->speedVector->y *timeStep;
         newCoordinates->z += (*object)->body->speedVector->z*timeStep;
         //new speedVector adding V.old + a.new *dt
-        (*object)->body->speedVector->x = (*object)->body->speedVector->x + newAcceleration->x *timeStep;
-        (*object)->body->speedVector->y = (*object)->body->speedVector->y + newAcceleration->y *timeStep;
-        (*object)->body->speedVector->z = (*object)->body->speedVector->z + newAcceleration->z *timeStep;
+        newSpeedVector->x = (*object)->body->speedVector->x + newAcceleration->x *timeStep;
+        newSpeedVector->y = (*object)->body->speedVector->y + newAcceleration->y *timeStep;
+        newSpeedVector->z = (*object)->body->speedVector->z + newAcceleration->z *timeStep;
 
-        //temporization lock;
-        mon_wait(mon_save_section);
-        //Save new position of the objects
-        (*object)->body->speedVector->x = newCoordinates->x;
-        (*object)->body->speedVector->y = newCoordinates->y;
-        (*object)->body->speedVector->z = newCoordinates->x;
-
-
-    }
+        newAcceleration->x = 0;
+        newAcceleration->y = 0;
+        newAcceleration->z = 0;
 }
+
 
 #if 0
 PreciseSimulation(struct List** object){
@@ -144,17 +160,3 @@ PreciseSimulation(struct List** object){
 }
 
 #endif
-
-
-Coordinates * calculateAccelerations(Coordinates* myPosition, Coordinates* bodyPosition, double bodyU){
-
-    double rx = bodyPosition->x -  myPosition->x;
-    double ry = bodyPosition->y -  myPosition->y;
-    double rz = bodyPosition->z -  myPosition->z;
-    //total distance
-    double distance = pow(rx*rx+ry*ry+rz*rz,3/2);
-
-    oldAcceleration->x = ((*object)->body->u * rx)/distance;
-    oldAcceleration->y = ((*object)->body->u * ry)/distance;
-    oldAcceleration->z = ((*object)->body->u * rz)/distance;
-}
