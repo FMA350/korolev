@@ -20,12 +20,18 @@ void monitor_enter(monitor m);
 
 void monitor_exit(monitor m);
 
-condition condition_create(monitor m);
+condition condition_create(monitor m, int condition, int lock);
+
+int condition_check(condition c, int checkvalue);
 
 void condition_destroy(condition c);
 
 void condition_wait(condition c);
 
 void condition_signal(condition c);
+
+void simulation_lock_on(condition c);
+
+void simulation_lock_off(condition c);
 
 #endif

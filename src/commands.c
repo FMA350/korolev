@@ -10,10 +10,10 @@
 #include "various.h"
 #include "orbitalFunctions.h"
 #include "data.h"
+#include "monitor.h"
+#include "simulation.h"
 
 extern struct List * celestialBodiesHead;
-//extern int SaveSimulationData(char * simulationName, struct List** list);
-//extern int LoadSimulationData(char * simulationName, struct List** list);
 
 const char * DELIMITER 	= " ";		//To delimit the text given by the user
 const int PARTITION_PARTS = 10; //to choose in how many parts the the orbit should be partitioned in.
@@ -21,74 +21,56 @@ const int PARTITION_PARTS = 10; //to choose in how many parts the the orbit shou
 //COMMANDS
 
 
-void* ExecuteCommand(void* d){
-	ThreadData *data = (ThreadData*)d;
-	char * commandToken;
-	commandToken = (char*) strtok((char*)data->line, DELIMITER); //FIXME
+int ExecuteCommand(char* line){
+	char *commandToken = line;
 
 	if(strcmp(commandToken, EXIT_COMMAND) == 0){
-		data->returnCode = (int)EXIT;
-		return NULL;
+		return EXIT;
 	}
 
   if(strcmp(commandToken, CALCULATE_ORBITAL_VELOCITY) == 0){
-		int error = OrbitalVelocityCommand();
-		data->returnCode = (int)error; //TODO: solve the warning
-		return NULL;
+		return OrbitalVelocityCommand();
   }
 
 	if(strcmp(commandToken, ADD_CELESTIAL_BODY) == 0){
-		AddCelestialBody(&celestialBodiesHead);
-		data->returnCode = 0;
-		return NULL;
+		return AddCelestialBody(&celestialBodiesHead);
 	}
 
 	if(strcmp(commandToken, SHOW_CELESTIAL_OBJECTS) == 0){
 		PrintAllBodies(celestialBodiesHead);
-		data->returnCode = 0; //TODO: solve il warning
-		return NULL;
+		return 0;
 	}
 
 	if(strcmp(commandToken, HELP) == 0){
 		PrintAllCommands();
-		data->returnCode = 0; //TODO: solve il warning
-		return NULL;
+		return 0;
 	}
 
 	if(strcmp(commandToken, REMOVE_CELESTIAL_BODY) == 0){
-		int error = RemoveCelestialBody(&celestialBodiesHead);
-		data->returnCode = (int)error;
-		return NULL;
+		return RemoveCelestialBody(&celestialBodiesHead);
 	}
 
 	if(strcmp(commandToken, CALCULATE_DELTA_V) == 0){
-		int error = CalculateDeltaV();
-		data->returnCode = (int)error;
-		return NULL;
+		return CalculateDeltaV();
 	}
 	if(strcmp(commandToken, SAVE_SIMULATION) == 0){
-		int error = SaveSimulationData(RequestString("Name of the save file",0),&celestialBodiesHead);
-		data->returnCode = (int)error;
-		return NULL;
+		return SaveSimulationData(RequestString("Name of the save file",0),&celestialBodiesHead);
+
 	}
 	if(strcmp(commandToken, LOAD_SIMULATION) == 0){
-		int error = LoadSimulationData(RequestString("Name of the save file",0),&celestialBodiesHead);
-		data->returnCode = (int)error;
-		return NULL;
+		return LoadSimulationData(RequestString("Name of the save file",0),&celestialBodiesHead);
 	}
 	if(strcmp(commandToken, INFO) == 0){
 	 	PrintDetails(RequestString("Name of the planet",0),celestialBodiesHead);
-		data->returnCode = 0;
-		return NULL;
+		return 0;
 	}
-
-
+	if(strcmp(commandToken, SIMULATE) == 0){
+		return Simulate(&celestialBodiesHead);
+	}
 	else{
 		//command was not regognized, return 99.
-		data->returnCode =  (int)ERROR_COMMAND_NOT_RECOGNIZED;
-		return NULL;
+		return ERROR_COMMAND_NOT_RECOGNIZED;
 	}
-  return NULL;
  }
 
 int OrbitalVelocityCommand(){
@@ -124,16 +106,16 @@ int CalculateDeltaV(){
 
 void PrintAllCommands(){
 	printf(KEVIDENCE"		***List of all commands***\n");
-	printf(KEVIDENCE"CALCULATE_ORBITAL_VELOCITY "KDATA"= %s",CALCULATE_ORBITAL_VELOCITY);
-	printf(KEVIDENCE"EXIT_COMMAND "KDATA"= %s",EXIT_COMMAND);
-	printf(KEVIDENCE"HELP: displays this guide "KDATA"= %s",HELP);
-	printf(KEVIDENCE"CALCULATE_DELTA_V "KDATA"= %s",CALCULATE_DELTA_V);
-	printf(KEVIDENCE"SHOW_CELESTIAL_OBJECTS: displays all the objects in the main list "KDATA"= %s",SHOW_CELESTIAL_OBJECTS);
-	printf(KEVIDENCE"INFO: shows details of an object, like its coordinates vector "KDATA"= %s",INFO);
-	printf(KEVIDENCE"SAVE_SIMULATION "KDATA"= %s",SAVE_SIMULATION);
-	printf(KEVIDENCE"LOAD_SIMULATION "KDATA"= %s",LOAD_SIMULATION);
-	printf(KEVIDENCE"ADD_CELESTIAL_BODY"KDATA"=%s"KNORMAL,ADD_CELESTIAL_BODY);
-	printf(KEVIDENCE"REMOVE_CELESTIAL_BODY"KDATA"=%s"KNORMAL,REMOVE_CELESTIAL_BODY);
+	printf(KEVIDENCE"CALCULATE_ORBITAL_VELOCITY "KDATA"= %s\n",CALCULATE_ORBITAL_VELOCITY);
+	printf(KEVIDENCE"EXIT_COMMAND "KDATA"= %s\n",EXIT_COMMAND);
+	printf(KEVIDENCE"HELP: displays this guide "KDATA"= %s\n",HELP);
+	printf(KEVIDENCE"CALCULATE_DELTA_V "KDATA"= %s\n",CALCULATE_DELTA_V);
+	printf(KEVIDENCE"SHOW_CELESTIAL_OBJECTS: displays all the objects in the main list "KDATA"= %s\n",SHOW_CELESTIAL_OBJECTS);
+	printf(KEVIDENCE"INFO: shows details of an object, like its coordinates vector "KDATA"= %s\n",INFO);
+	printf(KEVIDENCE"SAVE_SIMULATION "KDATA"= %s\n",SAVE_SIMULATION);
+	printf(KEVIDENCE"LOAD_SIMULATION "KDATA"= %s\n",LOAD_SIMULATION);
+	printf(KEVIDENCE"ADD_CELESTIAL_BODY"KDATA"=%s\n"KNORMAL,ADD_CELESTIAL_BODY);
+	printf(KEVIDENCE"REMOVE_CELESTIAL_BODY"KDATA"=%s\n"KNORMAL,REMOVE_CELESTIAL_BODY);
 }
 
 int AddCelestialBody(struct List **head){
@@ -165,4 +147,55 @@ int RemoveCelestialBody(struct List **list){
 		(*list) = element;
 		return error;
 	}
+}
+
+int Simulate(struct List** celestialBodiesHead){
+	int threadNumber = getListSize(*celestialBodiesHead);
+	ThreadData data[threadNumber];
+	//conditions are created with lock on, so that all the
+	monitor mon = monitor_create();
+	condition computation_section = condition_create(mon, threadNumber-1, 1);
+	condition saving_section	  = condition_create(mon, threadNumber-1, 1);
+
+
+	pthread_t td[threadNumber+1];
+
+	for(int i = 0; i < threadNumber; i++){
+
+		data[i].object = celestialBodiesHead;
+		data[i].body   =  (*celestialBodiesHead)->body;
+		printf("in commands, passing body: %s\n",data[i].body->name);
+		data[i].mon    = mon;
+		data[i].computation_section = computation_section;
+		data[i].saving_section      = saving_section;
+
+		data[i].numberOfThreads = threadNumber;
+		data[i].thread_id = i;
+
+		if(pthread_create(&td[i], NULL, &SimulationMain, &data[i])){
+		  //Could not create the thread
+		  printf(KERROR "***ERROR-ERROR-ERROR***\n"
+		                "   Internal program Error, thread could not lanch \n" KNORMAL);
+		  exit(1);
+		}
+		else{
+			printf("thread %d ok \n",i);
+			(*celestialBodiesHead) = (*celestialBodiesHead)->next;
+		}
+	}
+	//launch simulation commander
+	//note: this thread uses the data of the last created thread, since it just
+	//needs an hook for the conditions and the monitor
+	//SimulationCommander() is found in simulation.c
+	if(pthread_create(&td[threadNumber], NULL, &SimulationCommander, &data[threadNumber-1])){
+	  //Could not create the thread
+	  printf(KERROR "***ERROR-ERROR-ERROR***\n"
+					"   Internal program Error, thread could not lanch \n" KNORMAL);
+	  exit(1);
+	}
+
+	printf("SIMULATION HAS STARTED\n");
+	pthread_join(td[threadNumber],NULL);
+	//pause();
+	return 0;
 }

@@ -1,7 +1,7 @@
 #ifndef VARIOUS
 #define VARIOUS
 
-#define EXIT 1
+#include "monitor.h"
 
 #define KERROR    "\x1B[31m"  //red
 #define KNORMAL   "\x1B[0m"   //white
@@ -28,16 +28,21 @@ struct List{
 	};
 
 	typedef struct ThreadData{
-		char * line;
-		//int  * returnCode;
-		int returnCode;
+		//char * line; //type of simulation to use
+		struct List** object;
+		struct CelestialBody* body;
+		monitor mon;
+		condition computation_section;
+		condition	 saving_section;
+
+		int numberOfThreads;
+		int thread_id;
 	} ThreadData;
 
 	typedef struct CelestialBody{
 		struct CelestialBody* referenceBody;
-
 		char * name;
-	  double mass;
+	    double mass;
 		struct Coordinates* coordinates;
 		struct Coordinates* speedVector;
 		double u;
@@ -68,6 +73,8 @@ struct Coordinates* RequestCoordinateSet(char* message);
 CelestialBody* GetCelestialBody(char* name, struct List *list);
 
 struct List * GetList(char *name, struct List *list);
+
+int getListSize(struct List *list);
 
 /***** Print Functions Prototypes*****/
 

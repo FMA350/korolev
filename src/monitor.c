@@ -36,7 +36,6 @@
 
 struct monitor {
 	pthread_mutex_t lock;
-	struct tlist *urgent;
 };
 
 typedef struct monitor *monitor;
@@ -57,7 +56,6 @@ monitor monitor_create(void) {
 	monitor m = malloc(sizeof(*m));
 	if (m) {
 		pthread_mutex_init(&m->lock, NULL);
-		m->urgent = NULL;
 	}
 	return m;
 }
@@ -77,11 +75,13 @@ void monitor_exit(monitor m) {
 		mutex_out(&m->lock);
 }
 
-condition condition_create(monitor m) {
+condition condition_create(monitor m, int conditionValue, int lock) {
 	condition c = malloc(sizeof(*c));
 	if (c) {
 		c->m = m;
 		c->q = NULL;
+		c->value = conditionValue;
+		c->lock  = lock;
 	}
 	return c;
 }
@@ -91,7 +91,7 @@ void condition_destroy(condition c) {
 }
 
 int condition_check(condition c, int checkvalue){
-	if(&c->value == checkvalue){
+	if((c->value == checkvalue)&&(!c->lock)){
 		return 1;
 	}
 	return 0;
@@ -99,32 +99,35 @@ int condition_check(condition c, int checkvalue){
 
 void condition_wait(condition c) {
 	//printf("wait %p\n",c);
-	c.value++;
+	c->value++;
 	tlist_enqueue(&c->q, pthread_self());
 	monitor_exit(c->m);
 	suspend();
 }
 
-void simulation_lock_on(condition c){
-	c.flag = 1;
-}
-
-void simulation_lock_off(condition c){
-	c.flag = 0;
-}
-
 void condition_signal(condition c) {
 	//printf("signal %p\n",c);
-	if(!c.lock){
+	// if(!c->lock){
 		while (!tlist_empty(c->q)) {
-			&c.value = 0;
+			c->value = 0;
 			pthread_t t = tlist_dequeue(&c->q);
 			wakeup(t);
 		}
 	}
-	else{
-		tlist_enqueue(&c->q, pthread_self());
-		monitor_exit(c->m);
-		suspend();
-	}
+	// else{
+	// 	c->value++;
+	// 	tlist_enqueue(&c->q, pthread_self());
+	// 	monitor_exit(c->m);
+	// 	suspend();
+	// }
+// }
+
+void simulation_lock_on(condition c){
+	c->lock = 1;
+
+}
+
+void simulation_lock_off(condition c){
+	c->lock = 0;
+
 }

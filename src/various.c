@@ -92,6 +92,14 @@ CelestialBody* GetCelestialBody(char* name,struct List* list){
 	return NULL;
 }
 
+int getListSize(struct List *list){
+	SetToBeginning(&list);
+	if(list)
+		return (list->previous->position)+1;
+	else
+		return 0;
+}
+
 struct List * GetList(char *name, struct List *list){
 	SetToBeginning(&list);
 	if(!list) return NULL;
