@@ -11,11 +11,11 @@ double timeStep = 216000; //seconds
 void Save(struct Coordinates* coordinates, struct Coordinates* speedVector, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector){
     coordinates->x = newCoordinates->x;
     coordinates->y = newCoordinates->y;
-    coordinates->z = newCoordinates->x;
+    coordinates->z = newCoordinates->z;
 
     speedVector->x = newSpeedVector->x;
     speedVector->y = newSpeedVector->y;
-    speedVector->z = newSpeedVector->x;
+    speedVector->z = newSpeedVector->z;
 }
 
 void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* bodyPosition, struct Coordinates* newAcceleration, double u){
@@ -24,9 +24,14 @@ void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* bodyP
     double ry = bodyPosition->y -  myPosition->y;
     double rz = bodyPosition->z -  myPosition->z;
     //total distance
-    double distance = pow(rx*rx+ry*ry+rz*rz,3/2);
-
-    newAcceleration->x += u * rx/distance;
+    double distance = sqrt(rx*rx+ry*ry+rz*rz);
+    distance = pow(distance, 3);
+    //printf("distance: %G\n", distance);
+        if(distance == 0){
+            printf(KERROR"DIVISION BY ZERO! ABORTING"KNORMAL);
+            exit(1);
+        }
+    newAcceleration->x += u * rx/distance; //distance is actually distance^3
     newAcceleration->y += u * ry/distance;
     newAcceleration->z += u * rz/distance;
 }
@@ -34,10 +39,10 @@ void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* bodyP
 void SimpleSimulation(struct List* object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector, struct Coordinates* objectCoordinates,struct Coordinates* newAcceleration){
     //it does not conserve the energy!
     int position = object->position;
-    object = object->next;
-    while(object->position != position){
-        NewtonGravitation(objectCoordinates, object->body->coordinates, newAcceleration, object->body->u);
-        object = object->next;
+    struct List *currentElement = &(*object->next);
+    while(currentElement->position != position){
+        NewtonGravitation(object->body->coordinates, currentElement->body->coordinates, newAcceleration, currentElement->body->u);
+        currentElement = currentElement->next;
         }
         //new coordinates using the old value for the speed.
         newCoordinates->x += object->body->speedVector->x * timeStep;
@@ -56,15 +61,11 @@ void SimpleSimulation(struct List* object, struct Coordinates* newCoordinates, s
 
 void* SimulationMain(void* input){
         ThreadData* data = (ThreadData*) input;
-        struct List ** obj = data->object;
+        struct List ** obj = &(*data->object);
         struct List * object = (*obj);
 
-
-        printf("I am the %d thread, body name: %s\n", data->thread_id, data->body->name);
-        //printf("I am the %d thread, body name\n", data->thread_id);
-
-        struct Coordinates* objectSpeedVector      = data->body->speedVector;
-        struct Coordinates* objectCoordinates      = data->body->coordinates;
+        struct Coordinates* objectSpeedVector      = &(*data->body->speedVector);
+        struct Coordinates* objectCoordinates      = &(*data->body->coordinates);
         struct Coordinates* newSpeedVector = createCoordinateSet(data->body->speedVector->x,
                                                                  data->body->speedVector->y,
                                                                  data->body->speedVector->z);
@@ -75,7 +76,6 @@ void* SimulationMain(void* input){
 
     while(1){
         //computation lock
-        printf("at computation lock\n");
         monitor_enter(data->mon);
         if(condition_check(data->computation_section, data->numberOfThreads-1)){
             condition_signal(data->computation_section);
@@ -86,8 +86,9 @@ void* SimulationMain(void* input){
         }
 
         SimpleSimulation(object, newCoordinates, newSpeedVector, objectCoordinates, newAcceleration); //calculates new accelerations
+        //FIXME
+
         //save lock.
-        printf("at saving lock\n");
         monitor_enter(data->mon);
         if(condition_check(data->saving_section, data->numberOfThreads-1)){
             condition_signal(data->saving_section);
@@ -96,16 +97,20 @@ void* SimulationMain(void* input){
         else{
             condition_wait(data->saving_section);
         }
-        Save(objectCoordinates, objectSpeedVector, newCoordinates, newSpeedVector);
+        Save(object->body->coordinates, object->body->speedVector, newCoordinates, newSpeedVector);
+        monitor_enter(data->mon);
+        PrintDetails(data->body->name, (*data->object));
+        monitor_exit(data->mon);
     }
 
 }
 
 void* SimulationCommander(void* input){
+    int  i = 0;
     ThreadData* data = (ThreadData*) input;
     while(1){
+        printf("simulation at hour %d", i);
         getchar();
-        printf("computation step\n");
         monitor_enter(data->mon);
         simulation_lock_on(data->saving_section);
         simulation_lock_off(data->computation_section);
@@ -113,12 +118,12 @@ void* SimulationCommander(void* input){
         monitor_exit(data->mon);
 
         getchar();
-        printf("saving step\n");
         monitor_enter(data->mon);
         simulation_lock_on(data->computation_section);
         simulation_lock_off(data->saving_section);
         condition_signal(data->saving_section); //FIXME (JUST FOR TESTING)
         monitor_exit(data->mon);
+        i++;
     }
 
 }

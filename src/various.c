@@ -177,12 +177,12 @@ void PrintDetails(char* name, struct List* list){
 
 	printf(KOUTPUT"Position vector (m):\n"KDATA);
 	printf("x = %G\n",body->coordinates->x);
-	printf("x = %G\n",body->coordinates->y);
-	printf("x = %G\n",body->coordinates->z);
+	printf("y = %G\n",body->coordinates->y);
+	printf("z = %G\n",body->coordinates->z);
 	printf(KOUTPUT"Velocity vector(m/s):\n"KDATA);
 	printf("x = %G\n",body->speedVector->x);
-	printf("x = %G\n",body->speedVector->y);
-	printf("x = %G\n",body->speedVector->z);
+	printf("y = %G\n",body->speedVector->y);
+	printf("z = %G\n",body->speedVector->z);
 	printf(KOUTPUT"Constant U:"KDATA"%G\n"KNORMAL, body->u );
 
 }
