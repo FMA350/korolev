@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <float.h>
 #include <string.h>
+#include <limits.h>
 
 //Header
 #include "commands.h"
@@ -14,6 +15,7 @@
 #include "simulation.h"
 
 extern struct List * celestialBodiesHead;
+extern int sim_iteration;
 
 const char * DELIMITER 	= " ";		//To delimit the text given by the user
 const int PARTITION_PARTS = 10; //to choose in how many parts the the orbit should be partitioned in.
@@ -151,17 +153,21 @@ int RemoveCelestialBody(struct List **list){
 
 int Simulate(struct List** celestialBodiesHead){
 	int threadNumber = getListSize(*celestialBodiesHead);
-	ThreadData data[threadNumber];
-	//conditions are created with lock on, so that all the
+	ThreadData *data = malloc(sizeof(ThreadData)*threadNumber);
+	//conditions are created with all locks on.
+	int max_iteration = RequestInt(sim_iteration, INT_MAX, "Insert the iterations of the simulation");
 	monitor mon = monitor_create();
-	condition computation_section = condition_create(mon, threadNumber-1, 1);
-	condition saving_section	  = condition_create(mon, threadNumber-1, 1);
+	printf("iteration before starting: %d\n", sim_iteration);
+	condition computation_section = condition_create(mon, threadNumber-1, sim_iteration, max_iteration);
+	condition saving_section	  = condition_create(mon, threadNumber-1, sim_iteration, max_iteration);
 
-
-	pthread_t td[threadNumber+1];
+	//FIXME: this works both with and without malloc.
+	//in both cases, the addresses of pthreads are the same.
+	//Needs further investigation.
+	pthread_t * td = malloc(sizeof(pthread_t)*(threadNumber+1));
 
 	for(int i = 0; i < threadNumber; i++){
-
+		printf("thread address = %p\n",&td[i]);
 		data[i].object = celestialBodiesHead;
 		data[i].body   =  (*celestialBodiesHead)->body;
 		printf("in commands, passing body: %s\n",data[i].body->name);
@@ -187,13 +193,13 @@ int Simulate(struct List** celestialBodiesHead){
 	//note: this thread uses the data of the last created thread, since it just
 	//needs an hook for the conditions and the monitor
 	//SimulationCommander() is found in simulation.c
-	if(pthread_create(&td[threadNumber], NULL, &SimulationCommander, &data[threadNumber-1])){
+	if(pthread_create(&td[threadNumber], NULL, &SimulationCommander, &data[threadNumber])){
 	  //Could not create the thread
 	  printf(KERROR "***ERROR-ERROR-ERROR***\n"
 					"   Internal program Error, thread could not lanch \n" KNORMAL);
 	  exit(1);
 	}
-
+	printf("thread address = %p\n",&td[threadNumber]);
 	printf("SIMULATION HAS STARTED\n");
 	pthread_join(td[threadNumber],NULL);
 	//pause();

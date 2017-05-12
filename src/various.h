@@ -61,6 +61,7 @@ struct List{
 	} CelestialBody;
 
 /*****Request Functions Prototypes*****/
+double RequestInt(int min, int max, char* message);
 
 double RequestDouble(double min, double max, char * message);
 

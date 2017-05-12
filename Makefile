@@ -6,7 +6,7 @@
 
 CC = gcc
 LL = gcc
-CFLAGS = -c -include 'stdlib.h' -include 'pthread.h' -include 'stdio.h' -include 'unistd.h' -I $(SRCPATH) -I .
+CFLAGS = -c -include 'stdlib.h' -include 'pthread.h' -include 'limits.h' -include 'stdio.h' -include 'unistd.h' -I $(SRCPATH) -I .
 LFLAGS = -lm -lpthread
 
 EXECPATH = builds/

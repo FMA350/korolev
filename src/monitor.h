@@ -20,11 +20,15 @@ void monitor_enter(monitor m);
 
 void monitor_exit(monitor m);
 
-condition condition_create(monitor m, int condition, int lock);
+condition condition_create(monitor m, int n_thread_max, int n_iteration, int max_iteration);
 
-int condition_check(condition c, int checkvalue);
+int condition_check(condition c);
 
 void condition_destroy(condition c);
+
+int condition_current_iteration(condition c);
+
+int condition_max_iteration(condition c);
 
 void condition_wait(condition c);
 

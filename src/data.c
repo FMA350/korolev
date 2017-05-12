@@ -6,6 +6,7 @@
 #include <various.h>
 
 static const char * TOKENIZER_STR = ";";
+extern int sim_iteration;
 
 int SaveSimulationData(char * simulationName, struct List** list){
   FILE * fp;
@@ -19,7 +20,7 @@ int SaveSimulationData(char * simulationName, struct List** list){
   time ( &rawtime );
   struct tm *timeinfo = localtime ( &rawtime );
   strftime(str, 512,"%c", timeinfo);
-  fprintf(fp,"%s\n",str);
+  fprintf(fp,"%s%s%d\n",str, TOKENIZER_STR, sim_iteration);
   SetToBeginning(list);
   do{
       if(!(*list)->body->referenceBody){
@@ -58,7 +59,8 @@ int LoadSimulationData(char * simulationName, struct List** list){
 
   char * token = strtok(str, TOKENIZER_STR);
   printf("Resuming simulation from %s",token);
-  //token = strtok(NULL, TOKENIZER_STR);
+  token = strtok(NULL, TOKENIZER_STR);
+  sscanf(token, "%d", &sim_iteration);
   //TODO: whatever other info to load
   //Loads situation of celestial objects onto the simulation;
 

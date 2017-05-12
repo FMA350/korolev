@@ -41,8 +41,13 @@ struct monitor {
 typedef struct monitor *monitor;
 
 struct condition {
-	int lock;
-	int value;
+	int lock; //simple boolean lock
+	int n_thread_waiting; //number of thread waiting in the queue
+	int n_thread_max;	  //max number of thread that may be waiting
+	//in the queue. When n_thread_waiting = n_thread_max the barrier is released.
+
+	int n_iteration; //how many times the current condition has been signaled
+	int max_iteration; //how many times this condition may be signaled before blocking.
 
 	monitor m;
 	struct tlist *q;
@@ -75,13 +80,18 @@ void monitor_exit(monitor m) {
 		mutex_out(&m->lock);
 }
 
-condition condition_create(monitor m, int conditionValue, int lock) {
+condition condition_create(monitor m, int n_thread_max, int n_iteration, int max_iteration){
 	condition c = malloc(sizeof(*c));
 	if (c) {
+		c->lock  = 1;
+		c->n_thread_waiting = 0; //number of thread waiting in the queue
+		c->n_thread_max 	= n_thread_max;	  //max number of thread that may be waiting
+		//in the queue. When n_thread_waiting = n_thread_max the barrier is released.
+		c->n_iteration   = n_iteration; //how many times the current condition has been signaled
+		c->max_iteration = max_iteration; //how many times this condition may be signaled before blocking.
+
 		c->m = m;
 		c->q = NULL;
-		c->value = conditionValue;
-		c->lock  = lock;
 	}
 	return c;
 }
@@ -90,16 +100,24 @@ void condition_destroy(condition c) {
 	free(c);
 }
 
-int condition_check(condition c, int checkvalue){
-	if((c->value == checkvalue)&&(!c->lock)){
+int condition_check(condition c){
+	if((c->n_thread_waiting >= c->n_thread_max)&&(!c->lock)&&(c->n_iteration <= c->max_iteration)){
 		return 1;
 	}
 	return 0;
 }
 
+int condition_current_iteration(condition c){
+	return c->n_iteration;
+}
+
+int condition_max_iteration(condition c){
+	return c->max_iteration;
+}
+
 void condition_wait(condition c) {
 	//printf("wait %p\n",c);
-	c->value++;
+	c->n_thread_waiting++;
 	tlist_enqueue(&c->q, pthread_self());
 	monitor_exit(c->m);
 	suspend();
@@ -108,8 +126,9 @@ void condition_wait(condition c) {
 void condition_signal(condition c) {
 	//printf("signal %p\n",c);
 	// if(!c->lock){
+		c->n_iteration++;
+		c->n_thread_waiting = 0;
 		while (!tlist_empty(c->q)) {
-			c->value = 0;
 			pthread_t t = tlist_dequeue(&c->q);
 			wakeup(t);
 		}

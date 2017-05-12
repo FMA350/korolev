@@ -10,6 +10,26 @@
 static const double GravConstG = 6.67408e-11;
 extern struct List * celestialBodiesHead;
 
+double RequestInt(int min, int max, char* message){
+		printf("**Program Request**\n"
+					  "Int Value Required: %s \n"
+						"Values expected: Min: %d, Max: %d \n", message, min, max);
+		char *line = NULL;
+		size_t len = 64;
+		ssize_t read;
+		double value = 0;
+		while(1){
+			printf("_-_-_ Insert value: ");
+			read = getline(&line, &len, stdin);
+      int arguments = sscanf(line, "%d", &value);
+			if ((value >= min)&&(value <= max)&&(arguments == 1)){
+				printf("**Value %d is Acceptable**\n", value);
+				return value;
+			}
+			printf(KERROR"**ERROR-ERROR-ERROR Value was not acceptable\n"KNORMAL);
+		}
+}
+
 double RequestDouble(double min, double max, char* message){
 		printf("**Program Request**\n"
 					  "Double Value Required: %s \n"

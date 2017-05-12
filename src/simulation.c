@@ -2,7 +2,7 @@
 #include "various.h"
 #include <math.h>
 
-double timeStep = 216000; //seconds
+double timeStep = 86400; //day
 
 //time_t SimulationTime;
 
@@ -77,7 +77,7 @@ void* SimulationMain(void* input){
     while(1){
         //computation lock
         monitor_enter(data->mon);
-        if(condition_check(data->computation_section, data->numberOfThreads-1)){
+        if(condition_check(data->computation_section)){
             condition_signal(data->computation_section);
             monitor_exit(data->mon);
         }
@@ -90,7 +90,7 @@ void* SimulationMain(void* input){
 
         //save lock.
         monitor_enter(data->mon);
-        if(condition_check(data->saving_section, data->numberOfThreads-1)){
+        if(condition_check(data->saving_section)){
             condition_signal(data->saving_section);
             monitor_exit(data->mon);
         }
@@ -106,29 +106,40 @@ void* SimulationMain(void* input){
 }
 
 void* SimulationCommander(void* input){
-    int  i = 0;
     ThreadData* data = (ThreadData*) input;
-    while(1){
-        printf("simulation at hour %d", i);
-        getchar();
-        monitor_enter(data->mon);
-        simulation_lock_on(data->saving_section);
-        simulation_lock_off(data->computation_section);
-        condition_signal(data->computation_section); //FIXME (JUST FOR TESTING)
-        monitor_exit(data->mon);
+    printf("debug1\n");
+    int  i = condition_current_iteration(data->computation_section);
+    printf("debug2\n");
+    simulation_lock_off(data->computation_section);
+    simulation_lock_off(data->saving_section);
+    condition_signal(data->computation_section);
 
-        getchar();
+    while(i <= condition_current_iteration(data->computation_section)){
         monitor_enter(data->mon);
-        simulation_lock_on(data->computation_section);
-        simulation_lock_off(data->saving_section);
-        condition_signal(data->saving_section); //FIXME (JUST FOR TESTING)
+        i = condition_current_iteration(data->computation_section);
+        printf("simulation at hour %d", i);
         monitor_exit(data->mon);
-        i++;
+         getchar();
+        // monitor_enter(data->mon);
+        // simulation_lock_on(data->saving_section);
+         //simulation_lock_off(data->computation_section);
+        // condition_signal(data->computation_section); //FIXME (JUST FOR TESTING)
+        // monitor_exit(data->mon);
+        //
+        // getchar();
+        // monitor_enter(data->mon);
+        // simulation_lock_on(data->computation_section);
+         //simulation_lock_off(data->saving_section);
+        // condition_signal(data->saving_section); //FIXME (JUST FOR TESTING)
+        // monitor_exit(data->mon);
     }
+    monitor_enter(data->mon);
+    simulation_lock_on(data->computation_section);
+    simulation_lock_on(data->saving_section);
+    monitor_exit(data->mon);
+    printf("simulation at hour %d", i);
 
 }
-
-
 
 #if 0
 PreciseSimulation(struct List** object){
