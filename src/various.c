@@ -17,7 +17,7 @@ double RequestInt(int min, int max, char* message){
 		char *line = NULL;
 		size_t len = 64;
 		ssize_t read;
-		double value = 0;
+		int value = 0;
 		while(1){
 			printf("_-_-_ Insert value: ");
 			read = getline(&line, &len, stdin);
@@ -112,7 +112,7 @@ CelestialBody* GetCelestialBody(char* name,struct List* list){
 	return NULL;
 }
 
-int getListSize(struct List *list){
+int GetListSize(struct List *list){
 	SetToBeginning(&list);
 	if(list)
 		return (list->previous->position)+1;

@@ -1,8 +1,13 @@
 #include "monitor.h"
 #include "various.h"
+#include "data.h"
+
 #include <math.h>
 
+
 double timeStep = 86400; //day
+
+extern int sim_iteration;
 
 //time_t SimulationTime;
 
@@ -27,7 +32,7 @@ void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* bodyP
     double distance = sqrt(rx*rx+ry*ry+rz*rz);
     distance = pow(distance, 3);
     //printf("distance: %G\n", distance);
-        if(distance == 0){
+        if(distance < 1){
             printf(KERROR"DIVISION BY ZERO! ABORTING"KNORMAL);
             exit(1);
         }
@@ -61,6 +66,7 @@ void SimpleSimulation(struct List* object, struct Coordinates* newCoordinates, s
 
 void* SimulationMain(void* input){
         ThreadData* data = (ThreadData*) input;
+        int code;
         struct List ** obj = &(*data->object);
         struct List * object = (*obj);
 
@@ -76,12 +82,23 @@ void* SimulationMain(void* input){
 
     while(1){
         //computation lock
+
         monitor_enter(data->mon);
-        if(condition_check(data->computation_section)){
+        code = condition_check(data->computation_section);
+        if(code == SIMULATION_END){
+            //simulation is over, kill the threads.
+            //condition_kill_waiting_threads(data->computation_section);
+            condition_commander_signal(data->computation_section);
+            condition_wait(data->computation_section);
+        }
+        else if(code == BREAK_BARRIER){
+            sim_iteration++;
+            PrintState(data->simulationName, obj);
             condition_signal(data->computation_section);
             monitor_exit(data->mon);
         }
         else{
+            //either WAIT_FOR_START OR SPIN_AT_BARRIER
             condition_wait(data->computation_section);
         }
 
@@ -106,39 +123,31 @@ void* SimulationMain(void* input){
 }
 
 void* SimulationCommander(void* input){
-    ThreadData* data = (ThreadData*) input;
-    printf("debug1\n");
-    int  i = condition_current_iteration(data->computation_section);
-    printf("debug2\n");
+
+    ThreadData* data = (ThreadData*) input; //FIXME
+    while(condition_threads_waiting(data->computation_section)!=data->numberOfThreads){
+        printf("sleeping...\n");
+        sleep(1);
+    }
+    monitor_enter(data->mon);
+    printf("All threads ready, starting...\n");
     simulation_lock_off(data->computation_section);
     simulation_lock_off(data->saving_section);
+    printf("commander signaling the computation_section\n");
     condition_signal(data->computation_section);
+    printf("commander suspending at the computation_section\n");
+    condition_commander_start(data->computation_section);
 
-    while(i <= condition_current_iteration(data->computation_section)){
-        monitor_enter(data->mon);
-        i = condition_current_iteration(data->computation_section);
-        printf("simulation at hour %d", i);
-        monitor_exit(data->mon);
-         getchar();
-        // monitor_enter(data->mon);
-        // simulation_lock_on(data->saving_section);
-         //simulation_lock_off(data->computation_section);
-        // condition_signal(data->computation_section); //FIXME (JUST FOR TESTING)
-        // monitor_exit(data->mon);
-        //
-        // getchar();
-        // monitor_enter(data->mon);
-        // simulation_lock_on(data->computation_section);
-         //simulation_lock_off(data->saving_section);
-        // condition_signal(data->saving_section); //FIXME (JUST FOR TESTING)
-        // monitor_exit(data->mon);
-    }
+    //waits for the simulation to be over.
+
+    printf("commander awakened at the computation_section\n");
     monitor_enter(data->mon);
     simulation_lock_on(data->computation_section);
     simulation_lock_on(data->saving_section);
     monitor_exit(data->mon);
-    printf("simulation at hour %d", i);
 
+    printf(KDATA"simulation over at day %d\n\n\n"KNORMAL, condition_current_iteration(data->computation_section));
+    //TODO: clean up of the resources
 }
 
 #if 0

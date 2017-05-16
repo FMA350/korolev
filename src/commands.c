@@ -16,6 +16,7 @@
 
 extern struct List * celestialBodiesHead;
 extern int sim_iteration;
+extern int start_iteration;
 
 const char * DELIMITER 	= " ";		//To delimit the text given by the user
 const int PARTITION_PARTS = 10; //to choose in how many parts the the orbit should be partitioned in.
@@ -152,14 +153,23 @@ int RemoveCelestialBody(struct List **list){
 }
 
 int Simulate(struct List** celestialBodiesHead){
-	int threadNumber = getListSize(*celestialBodiesHead);
+	start_iteration = sim_iteration;
+	int threadNumber = GetListSize(*celestialBodiesHead);
+	if(threadNumber == 0){
+		printf(KERROR"No objects in the list, aborting!"KNORMAL);
+		return ERROR_LIST_EMPTY;
+	}
+	//SetToBeginning(celestialBodiesHead);
+	printf("Initial system energy: %G", CalculateSystemEnergy((*celestialBodiesHead)));
+
 	ThreadData *data = malloc(sizeof(ThreadData)*threadNumber);
-	//conditions are created with all locks on.
-	int max_iteration = RequestInt(sim_iteration, INT_MAX, "Insert the iterations of the simulation");
+	int max_iteration = RequestInt(0, INT_MAX, "Insert the iterations of the simulation");
+	char * simulationName = RequestString("Name of the simulation",0);
+	PrintHeader(simulationName, celestialBodiesHead); //adds .slog to simulationName
 	monitor mon = monitor_create();
-	printf("iteration before starting: %d\n", sim_iteration);
-	condition computation_section = condition_create(mon, threadNumber-1, sim_iteration, max_iteration);
-	condition saving_section	  = condition_create(mon, threadNumber-1, sim_iteration, max_iteration);
+	//conditions are created with all locks on.
+	condition computation_section = condition_create(mon, threadNumber-1, sim_iteration, sim_iteration+max_iteration);
+	condition saving_section	  = condition_create(mon, threadNumber-1, sim_iteration, sim_iteration+max_iteration);
 
 	//FIXME: this works both with and without malloc.
 	//in both cases, the addresses of pthreads are the same.
@@ -167,7 +177,7 @@ int Simulate(struct List** celestialBodiesHead){
 	pthread_t * td = malloc(sizeof(pthread_t)*(threadNumber+1));
 
 	for(int i = 0; i < threadNumber; i++){
-		printf("thread address = %p\n",&td[i]);
+		data[i].simulationName = simulationName;
 		data[i].object = celestialBodiesHead;
 		data[i].body   =  (*celestialBodiesHead)->body;
 		printf("in commands, passing body: %s\n",data[i].body->name);
@@ -185,7 +195,7 @@ int Simulate(struct List** celestialBodiesHead){
 		  exit(1);
 		}
 		else{
-			printf("thread %d ok \n",i);
+			printf("thread %d OK \n\n",i);
 			(*celestialBodiesHead) = (*celestialBodiesHead)->next;
 		}
 	}
@@ -193,15 +203,25 @@ int Simulate(struct List** celestialBodiesHead){
 	//note: this thread uses the data of the last created thread, since it just
 	//needs an hook for the conditions and the monitor
 	//SimulationCommander() is found in simulation.c
-	if(pthread_create(&td[threadNumber], NULL, &SimulationCommander, &data[threadNumber])){
+
+	if(pthread_create(&td[threadNumber], NULL, &SimulationCommander, &data[0])){
 	  //Could not create the thread
 	  printf(KERROR "***ERROR-ERROR-ERROR***\n"
 					"   Internal program Error, thread could not lanch \n" KNORMAL);
 	  exit(1);
 	}
-	printf("thread address = %p\n",&td[threadNumber]);
-	printf("SIMULATION HAS STARTED\n");
+	printf("Simulation bootstrap completed...\n\n\n\n\n");
+
 	pthread_join(td[threadNumber],NULL);
-	//pause();
+
+	 condition_destroy(computation_section);
+	 condition_destroy(saving_section);
+	 monitor_destroy(mon);
+	// for(int i = 0; i < threadNumber; i++){
+	// 	//pthread_kill(td[i], 15);
+	// 	free(data[i].object);
+	// }
+	printf("final system energy: %G", CalculateSystemEnergy((*celestialBodiesHead)));
+	printf(KDATA"cleanup completed\n\n\n" KNORMAL);
 	return 0;
 }

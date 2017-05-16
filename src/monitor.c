@@ -30,6 +30,7 @@
 #include<suspend.h>
 #include<monitor.h>
 #include<tlist.h>
+#include <signal.h>
 
 #define mutex_in(X) pthread_mutex_lock(X)
 #define mutex_out(X) pthread_mutex_unlock(X)
@@ -51,6 +52,7 @@ struct condition {
 
 	monitor m;
 	struct tlist *q;
+	struct tlist *commander;
 };
 
 
@@ -83,12 +85,12 @@ void monitor_exit(monitor m) {
 condition condition_create(monitor m, int n_thread_max, int n_iteration, int max_iteration){
 	condition c = malloc(sizeof(*c));
 	if (c) {
-		c->lock  = 1;
+		c->lock  			= 1;
 		c->n_thread_waiting = 0; //number of thread waiting in the queue
 		c->n_thread_max 	= n_thread_max;	  //max number of thread that may be waiting
 		//in the queue. When n_thread_waiting = n_thread_max the barrier is released.
-		c->n_iteration   = n_iteration; //how many times the current condition has been signaled
-		c->max_iteration = max_iteration; //how many times this condition may be signaled before blocking.
+		c->n_iteration 	= n_iteration; //how many times the current condition has been signaled //FIXME
+		c->max_iteration 	=  max_iteration; //how many times this condition may be signaled before blocking.
 
 		c->m = m;
 		c->q = NULL;
@@ -101,10 +103,30 @@ void condition_destroy(condition c) {
 }
 
 int condition_check(condition c){
-	if((c->n_thread_waiting >= c->n_thread_max)&&(!c->lock)&&(c->n_iteration <= c->max_iteration)){
-		return 1;
+	if(c->n_thread_waiting >= c->n_thread_max){
+		//checks if this thread is the last to get to this condition (barrier), if so:
+		if(c->n_iteration >= c->max_iteration){
+			//if all iterations were done
+			printf("return 3, n_thread_max waiting and too many iterations\n");
+			return SIMULATION_END;
+		}
+		else if(!c->lock){
+			printf("return 2, n_thread_max waiting and lock off\n");
+			//not all iterations were done, and no lock is in place
+			return BREAK_BARRIER;
+		}
+		else{
+			//if lock is on
+			printf("return 1, n_thread_max waiting but lock on\n");
+			return WAIT_FOR_START;
+		}
 	}
-	return 0;
+	else{
+		//if instead I am not the last to get to this barrier:
+		printf("return 0, not enough threads waiting\n");
+		return SPIN_AT_BARRIER;
+	}
+
 }
 
 int condition_current_iteration(condition c){
@@ -115,17 +137,43 @@ int condition_max_iteration(condition c){
 	return c->max_iteration;
 }
 
+int condition_threads_waiting(condition c){
+	return c->n_thread_waiting;
+}
+
 void condition_wait(condition c) {
 	//printf("wait %p\n",c);
+	printf("thread is waiting, n_thread_waiting: %d",c->n_thread_waiting);
 	c->n_thread_waiting++;
 	tlist_enqueue(&c->q, pthread_self());
 	monitor_exit(c->m);
 	suspend();
 }
 
+void condition_commander_start(condition c){
+	//wake up all the waiting threads
+	//used to avoid busy waiting of the commander
+	tlist_enqueue(&c->commander, pthread_self());
+	// c->n_thread_waiting = 0;
+	// while (!tlist_empty(c->q)) {
+	// 	pthread_t t = tlist_dequeue(&c->q);
+	// 	wakeup(t);
+	// }
+	//release the lock
+	monitor_exit(c->m);
+	suspend();
+}
+
+void condition_kill_waiting_threads(condition c){
+	// while (!tlist_empty(c->q)) {
+	// 	printf("killing one\n");
+	// 	pthread_t t = tlist_dequeue(&c->q);
+	// 	pthread_kill(t, 15);
+	// }
+	// 切腹
+}
+
 void condition_signal(condition c) {
-	//printf("signal %p\n",c);
-	// if(!c->lock){
 		c->n_iteration++;
 		c->n_thread_waiting = 0;
 		while (!tlist_empty(c->q)) {
@@ -133,13 +181,11 @@ void condition_signal(condition c) {
 			wakeup(t);
 		}
 	}
-	// else{
-	// 	c->value++;
-	// 	tlist_enqueue(&c->q, pthread_self());
-	// 	monitor_exit(c->m);
-	// 	suspend();
-	// }
-// }
+
+void condition_commander_signal(condition c){
+	pthread_t t = tlist_dequeue(&c->commander);
+	wakeup(t);
+}
 
 void simulation_lock_on(condition c){
 	c->lock = 1;

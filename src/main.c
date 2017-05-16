@@ -9,6 +9,7 @@
 //GLOBAL VARIABLES
 struct List* celestialBodiesHead = NULL;
 int sim_iteration = 0;
+int start_iteration = 0;
 
 int main(){
     PrintHelloMessage();

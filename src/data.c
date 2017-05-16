@@ -6,28 +6,73 @@
 #include <various.h>
 
 static const char * TOKENIZER_STR = ";";
+// static const char * LAST_LINE_TOK = "@";
 extern int sim_iteration;
+extern int start_iteration;
+
+void PrintHeader(char * simulationName, struct List** list){
+    FILE * fp;
+    char str[512];
+    fp = fopen(strcat(simulationName,".slog"), "a");
+    time_t rawtime = time(NULL);
+    time ( &rawtime );
+    struct tm *timeinfo = localtime ( &rawtime );
+    strftime(str, 512,"%c", timeinfo);
+    fprintf(fp,"%s%s%d%s%d\n",str, TOKENIZER_STR, sim_iteration, TOKENIZER_STR, GetListSize(*list)); //time;initialIteration;objects
+    //GetListSize sets the list at the beggining already.
+    fclose(fp);
+}
+
+void PrintState(char * simulationName, struct List** list){
+    SetToBeginning(list);
+    FILE * fp;
+    fp = fopen(simulationName, "a");
+    do{
+        if(!(*list)->body->referenceBody){
+            fprintf(fp,"null%s", TOKENIZER_STR);
+        }
+        else{
+           fprintf(fp, "%s%s", (*list)->body->referenceBody->name, TOKENIZER_STR);
+        }
+        fprintf(fp, "%d%s%s%s%lf%s%lf%s%lf%s%lf%s%lf%s%lf%s%lf%s\n",
+                 sim_iteration,       TOKENIZER_STR,
+                 (*list)->body->name, TOKENIZER_STR,
+                 (*list)->body->mass, TOKENIZER_STR,
+                 (*list)->body->coordinates->x, TOKENIZER_STR,
+                 (*list)->body->coordinates->y, TOKENIZER_STR,
+                 (*list)->body->coordinates->z, TOKENIZER_STR,
+                 (*list)->body->speedVector->x, TOKENIZER_STR,
+                 (*list)->body->speedVector->y, TOKENIZER_STR,
+                 (*list)->body->speedVector->z, TOKENIZER_STR
+             );
+             (*list) = (*list)->next;
+    }while((*list)->position != 0);
+    fclose(fp);
+}
+
+// void Afterworld(char * simulationName){
+//     //writes the number of iterations of a simulation saved on a file.
+//     FILE * fp;
+//     fp = fopen(strcat(simulationName,".sdata"), "a");
+//     fprintf(fp,"%s%d",LAST_LINE_TOK, sim_iteration-start_iteration);
+// }
 
 int SaveSimulationData(char * simulationName, struct List** list){
   FILE * fp;
   char str[512];
   fp = fopen(strcat(simulationName,".sdata"), "w");
-  if(!fp){
-    return ERROR_FILE_DOES_NOT_EXIST;
-    //Needed?
-  }
   time_t rawtime = time(NULL);
   time ( &rawtime );
   struct tm *timeinfo = localtime ( &rawtime );
   strftime(str, 512,"%c", timeinfo);
-  fprintf(fp,"%s%s%d\n",str, TOKENIZER_STR, sim_iteration);
-  SetToBeginning(list);
+  fprintf(fp,"%s%s%d%s%d\n",str, TOKENIZER_STR, sim_iteration, TOKENIZER_STR, GetListSize(*list)); //time;iteratioNumber;objects
+  //GetListSize sets the list at the beggining already.
   do{
       if(!(*list)->body->referenceBody){
           fprintf(fp,"null%s", TOKENIZER_STR);
       }
       else{
-         fprintf(fp, "%s%s", (*list)->body->referenceBody->name, TOKENIZER_STR); //TODO: this may not work since referenceBody may be null
+         fprintf(fp, "%s%s", (*list)->body->referenceBody->name, TOKENIZER_STR);
       }
       fprintf(fp, "%s%s%lf%s%lf%s%lf%s%lf%s%lf%s%lf%s%lf%s\n",
                (*list)->body->name, TOKENIZER_STR,
@@ -48,6 +93,7 @@ int SaveSimulationData(char * simulationName, struct List** list){
 int LoadSimulationData(char * simulationName, struct List** list){
   FILE * fp;
   char str[512];
+  int numberOfObjects = 0;
   fp = fopen(strcat(simulationName,".sdata"), "r");
   if(!fp){
     return ERROR_FILE_DOES_NOT_EXIST;
@@ -56,16 +102,18 @@ int LoadSimulationData(char * simulationName, struct List** list){
     return ERROR_CORRUPTED_FILE;
   }
   //load preliminary simulation data
-
   char * token = strtok(str, TOKENIZER_STR);
   printf("Resuming simulation from %s",token);
   token = strtok(NULL, TOKENIZER_STR);
-  sscanf(token, "%d", &sim_iteration);
-  //TODO: whatever other info to load
-  //Loads situation of celestial objects onto the simulation;
+  sscanf(token, "%d", &start_iteration);
+  token = strtok(NULL, TOKENIZER_STR);
+  sscanf(token, "%d", &numberOfObjects);
+
+
+
+  //Load last situation of celestial objects onto the simulation;
 
   while(fgets(str, 512, fp)!=NULL){
- //while(fscanf(fp, 512, fp)!=NULL){
     CelestialBody* referenceBody;
     char * referenceBodyStr = strtok(str, TOKENIZER_STR);
     if(strcmp(referenceBodyStr, "null")){

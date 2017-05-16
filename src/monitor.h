@@ -7,6 +7,12 @@
 #include<suspend.h>
 #include<semaphore.h>
 
+#define SIMULATION_END 3
+#define BREAK_BARRIER  2
+#define WAIT_FOR_START 1
+#define SPIN_AT_BARRIER 0
+
+
 struct monitor;
 typedef struct monitor *monitor;
 struct condition;
@@ -30,9 +36,17 @@ int condition_current_iteration(condition c);
 
 int condition_max_iteration(condition c);
 
+int condition_threads_waiting(condition c);
+
 void condition_wait(condition c);
 
+void condition_commander_start(condition c);
+
+void condition_kill_waiting_threads(condition c);
+
 void condition_signal(condition c);
+
+void condition_commander_signal(condition c);
 
 void simulation_lock_on(condition c);
 

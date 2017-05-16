@@ -29,11 +29,12 @@ struct List{
 
 	typedef struct ThreadData{
 		//char * line; //type of simulation to use
+		char *simulationName; //for saving purposes.
 		struct List** object;
 		struct CelestialBody* body;
 		monitor mon;
 		condition computation_section;
-		condition	 saving_section;
+		condition saving_section;
 
 		int numberOfThreads;
 		int thread_id;
@@ -75,7 +76,7 @@ CelestialBody* GetCelestialBody(char* name, struct List *list);
 
 struct List * GetList(char *name, struct List *list);
 
-int getListSize(struct List *list);
+int GetListSize(struct List *list);
 
 /***** Print Functions Prototypes*****/
 

@@ -18,6 +18,9 @@ int errorCode = (int)ec;
 			        //exit program
 			        exit(0);
               break;
+    case ERROR_LIST_EMPTY:
+                printf(KERROR"  ***ERROR! List of celestial objects is empty!\n"KNORMAL);
+                break;
     case ERROR_TOO_MANY_ARGUMENTS:
               printf(KERROR"  ***ERROR! Too many arguments for such function!\n"KNORMAL);
               break;
