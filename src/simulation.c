@@ -93,7 +93,7 @@ void* SimulationMain(void* input){
         }
         else if(code == BREAK_BARRIER){
             sim_iteration++;
-            PrintState(data->simulationName, obj);
+            PrintState(data->simulationName, &(*obj));
             condition_signal(data->computation_section);
             monitor_exit(data->mon);
         }
