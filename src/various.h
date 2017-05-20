@@ -30,7 +30,7 @@ struct List{
 	typedef struct ThreadData{
 		//char * line; //type of simulation to use
 		char *simulationName; //for saving purposes.
-		struct List** object;
+		struct List* object;
 		struct CelestialBody* body;
 		monitor mon;
 		condition computation_section;

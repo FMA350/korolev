@@ -7,7 +7,8 @@
 #include<suspend.h>
 #include<semaphore.h>
 
-#define SIMULATION_END 3
+#define SIMULATION_END 4
+#define EXIT_THREAD    3
 #define BREAK_BARRIER  2
 #define WAIT_FOR_START 1
 #define SPIN_AT_BARRIER 0

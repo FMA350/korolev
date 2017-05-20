@@ -301,8 +301,6 @@ void UpdatePosition(struct List **list){
 void SetToBeginning(struct List **list){
 	if(!*list) return;
 	while((*list)->position != 0){
-		printf("looking for the beginning...\n");
-		//PROBLEM IS HERE
     (*list) = (*list)->next;
 	}
 	return;
@@ -320,7 +318,6 @@ int RemoveList(struct List** list){
 		(*list)->next = NULL;
 		(*list)->previous = NULL;
     free(*list);
-		//free(list);
 		(*list) = NULL;
     return 0;
   }

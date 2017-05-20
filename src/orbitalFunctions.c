@@ -15,6 +15,7 @@ double CalculateSystemEnergy(struct List *list){
         energy += list->body->mass * (list->body->coordinates->x*list->body->coordinates->x+
                                     list->body->coordinates->y*list->body->coordinates->y+
                                     list->body->coordinates->z*list->body->coordinates->z)/2;
+        list = list->next;
     }
     return energy;
 }

@@ -159,7 +159,7 @@ int Simulate(struct List** celestialBodiesHead){
 		printf(KERROR"No objects in the list, aborting!"KNORMAL);
 		return ERROR_LIST_EMPTY;
 	}
-	//SetToBeginning(celestialBodiesHead);
+	SetToBeginning(celestialBodiesHead);
 	printf("Initial system energy: %G", CalculateSystemEnergy((*celestialBodiesHead)));
 
 	ThreadData *data = malloc(sizeof(ThreadData)*threadNumber);
@@ -175,11 +175,11 @@ int Simulate(struct List** celestialBodiesHead){
 	//in both cases, the addresses of pthreads are the same.
 	//Needs further investigation.
 	pthread_t * td = malloc(sizeof(pthread_t)*(threadNumber+1));
-
+	SetToBeginning(celestialBodiesHead);
 	for(int i = 0; i < threadNumber; i++){
 		data[i].simulationName = simulationName;
-		data[i].object = celestialBodiesHead;
-		data[i].body   =  (*celestialBodiesHead)->body;
+		data[i].object = (*celestialBodiesHead);
+		data[i].body   =  &(*(*celestialBodiesHead)->body);
 		printf("in commands, passing body: %s\n",data[i].body->name);
 		data[i].mon    = mon;
 		data[i].computation_section = computation_section;
@@ -195,7 +195,7 @@ int Simulate(struct List** celestialBodiesHead){
 		  exit(1);
 		}
 		else{
-			printf("thread %d OK \n\n",i);
+			printf("thread %d body %s OK \n\n", data[i].thread_id, data[i].body->name);
 			(*celestialBodiesHead) = (*celestialBodiesHead)->next;
 		}
 	}
@@ -213,15 +213,15 @@ int Simulate(struct List** celestialBodiesHead){
 	printf("Simulation bootstrap completed...\n\n\n\n\n");
 
 	pthread_join(td[threadNumber],NULL);
+	printf(KDATA"simulation over at step %d\n\n\n"KNORMAL, condition_current_iteration(data->computation_section));
 
-	 condition_destroy(computation_section);
-	 condition_destroy(saving_section);
-	 monitor_destroy(mon);
-	// for(int i = 0; i < threadNumber; i++){
-	// 	//pthread_kill(td[i], 15);
-	// 	free(data[i].object);
-	// }
-	printf("final system energy: %G", CalculateSystemEnergy((*celestialBodiesHead)));
+
+	condition_destroy(computation_section);
+	condition_destroy(saving_section);
+	monitor_destroy(mon);
+	free(data);
+	free(td);
 	printf(KDATA"cleanup completed\n\n\n" KNORMAL);
+	printf("final system energy: %G", CalculateSystemEnergy((*celestialBodiesHead)));
 	return 0;
 }

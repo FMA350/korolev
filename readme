@@ -1,18 +1,60 @@
-Project start: 10/18
+Project start: 10/18/2016
 
-Korolev
-
-A program designed to do orbital mechanics for you!
-Kerbal Space Program and Real World data already saved in the program for you.
-
-The aim of this project is to explore the C language and learn about concurrency,
-while, at the same time, create something useful for the gaming and
-astrophile community.
-
-Given Free, as in freedom.
+Korolev: Newtonian simulation and Space Guidance for you CL!
 
 
 
+Korolev is program designed to simulate orbital mechanics for you!
+Proudly made for Command Line only.
 
-fma.
 
+
+Installation:
+
+Clone the git repository onto your system. Jump into it
+and then type:
+
+"make"
+"make clean"
+"./builds/Korolev"
+
+Usage:
+
+Type "help" in the program console for a list of the available commands.
+All functionalities are activated by typing the command name without any
+argument. When and if the program needs further interaction it
+will request it to the user.
+
+Functionalities:
+
+-Navigation related
+Korolev knows how to calculate the orbital speed of an object given its orbit
+
+-Simulation related
+
+Able to simulate a n-body problem and to solve for a given amount of time-steps using different methods:
+->Euler method
+->Runge-Kutta 4th method (in development).
+
+Able to add and remove a bodies.
+Able to load and store bodies for further simulations.
+Able to store a log of the simulation (saves the object info at every time-step) for further analysis.
+Able to calculate and show the initial energy of a system and the final one (useful to analyze the accuracy of the methods).
+
+
+Copyright (C) 2017  Francesco Maria Moneta
+francesco.moneta@studio.unibo.it - francesco.moneta@gmail.com
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
