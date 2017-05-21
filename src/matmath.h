@@ -13,4 +13,5 @@ void sums(struct Coordinates* a, double b);
 void subs(struct Coordinates* a, double b);
 void mols(struct Coordinates* a, double b);
 void divs(struct Coordinates* a, double b);
+void assign(struct Coordinates* a, struct Coordinates* b);
 #endif

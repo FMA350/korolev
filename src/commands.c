@@ -19,7 +19,7 @@ extern int sim_iteration;
 extern int start_iteration;
 
 const char * DELIMITER 	= " ";		//To delimit the text given by the user
-const int PARTITION_PARTS = 10; //to choose in how many parts the the orbit should be partitioned in.
+const int PARTITION_PARTS = 10; 	//to choose in how many parts the the orbit should be partitioned in.
 
 //COMMANDS
 

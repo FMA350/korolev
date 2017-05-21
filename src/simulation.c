@@ -24,15 +24,14 @@ void Save(struct Coordinates* coordinates, struct Coordinates* speedVector, stru
     speedVector->z = newSpeedVector->z;
 }
 
-void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* bodyPosition, struct Coordinates* newAcceleration, double u){
+void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* otherElementPosition, struct Coordinates* newAcceleration, double u){
     //Instant accleration felt by objects.
-    double rx = bodyPosition->x -  myPosition->x;
-    double ry = bodyPosition->y -  myPosition->y;
-    double rz = bodyPosition->z -  myPosition->z;
+    double rx = otherElementPosition->x -  myPosition->x;
+    double ry = otherElementPosition->y -  myPosition->y;
+    double rz = otherElementPosition->z -  myPosition->z;
     //total distance
     double distance = sqrt(rx*rx+ry*ry+rz*rz);
     distance = pow(distance, 3);
-    //printf("distance: %G\n", distance);
         if(distance < 1){
             printf(KERROR"DIVISION BY ZERO! ABORTING"KNORMAL);
             exit(1);
@@ -42,7 +41,7 @@ void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* bodyP
     newAcceleration->z += u * rz/distance;
 }
 
-void SimpleSimulation(struct List* object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector,struct Coordinates* newAcceleration){
+void Euler(struct List* object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector,struct Coordinates* newAcceleration){
     //it does not conserve the energy!
     //TODO:rename to Euler
     int position = object->position;
@@ -65,28 +64,125 @@ void SimpleSimulation(struct List* object, struct Coordinates* newCoordinates, s
     newAcceleration->z = 0;
 }
 
-//  void RungeKutta(struct List* object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector,struct Coordinates* newAcceleration){
-// // @ implemented following the paper:
-// // Implementing a Fourth Order Runge-Kutta Method for Orbit Simulation
-// // CJ Voesenek
-// // June 14, 2008
-//
-//     int position = object->position;
-//     struct List *currentElement = &(*object->next);
-//     while(currentElement->position != position){
-//         //calculates the accleration in the current position
-//         NewtonGravitation(object->body->coordinates, currentElement->body->coordinates, newAcceleration, currentElement->body->u);
-//         currentElement = currentElement->next;
-//     }
-//     //new accleration contains the sum of the accleration at t = 0;
-//     struct Coordinates k1v = createCoordinateSet(newAcceleration->x,newAcceleration->y,newAcceleration->z);
-//      //supposed acceleration at Ri (initial position)
-//     struct Coordinates k1r = object->body->speedVector; // k1r = velocity in Ri
-//     struct Coordinates k2v = object->body->coordinates;
-//     sum(k2v,molts()); //TODO
-//
-//
-// }
+ void RungeKutta(struct List* object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector,struct Coordinates* newAcceleration){
+// @ implemented following the paper:
+// Implementing a Fourth Order Runge-Kutta Method for Orbit Simulation
+// CJ Voesenek
+// June 14, 2008
+// TODO: contact the author, errata in knr e pag1
+
+    //init:
+    struct Coordinates* k1r = createCoordinateSet(0,0,0);
+    struct Coordinates* k2r = createCoordinateSet(0,0,0);
+    struct Coordinates* k3r = createCoordinateSet(0,0,0);;
+    struct Coordinates* k4r = createCoordinateSet(0,0,0);
+
+    struct Coordinates* k1v = createCoordinateSet(0,0,0);
+    struct Coordinates* k2v = createCoordinateSet(0,0,0);
+    struct Coordinates* k3v = createCoordinateSet(0,0,0);
+    struct Coordinates* k4v = createCoordinateSet(0,0,0);
+
+    struct Coordinates* newVelocity     = createCoordinateSet(0,0,0);
+    //struct Coordinates* newAcceleration = createCoordinateSet(0,0,0);
+
+    int position = object->position;
+    struct List *currentElement = &(*object->next);
+
+    /****************** CALCULATE k1v   *******************/
+    //calculates the accleration in the current position and puts it in k1v
+    while(currentElement->position != position){
+        NewtonGravitation(object->body->coordinates, currentElement->body->coordinates, k1v, currentElement->body->u);
+        currentElement = currentElement->next;
+    }
+    //k1v holds now the accleration for the body in his initial state.
+    currentElement = currentElement->next; //move the list again back to the next element
+
+    /****************** CALCULATE k1r   *******************/
+    assign(k1r, object->body->speedVector); // k1r = velocity in Ri
+
+    /****************** CALCULATE k2v   *******************/
+    assign(newVelocity, k1r);      //we don't want to modify k1r, so assign its value to newVelocity;
+    mols(newVelocity, timeStep/2); //velocity * time = distance!
+    assign (newCoordinates, newVelocity); //so the new coordinates equal the velocity*dt/2...
+    summ(newCoordinates ,object->body->coordinates); //plus the old coordinates.
+    while(currentElement->position != position){
+        //calculates the accleration in the current position and puts it in k2v
+        NewtonGravitation(newCoordinates, currentElement->body->coordinates, k2v, currentElement->body->u);
+        currentElement = currentElement->next;
+    }
+    //k2v holds now the accleration for the body in a hypothetical state
+    currentElement = currentElement->next; //move the list again back to the next element
+
+
+    /****************** CALCULATE k2r   *******************/
+    assign(k2r, object->body->speedVector); //let's start assigning to k2r the initial speed value
+    assign(newAcceleration, k1v); //we don't want to modify k1v, so assign its value to newAcceleration;
+    mols(newAcceleration, timeStep/2); //new acceleration for half the time = new speed!
+    summ(k2r, newAcceleration); //acceleration is now a speed; k2r = old speed + new speed.
+
+    /****************** CALCULATE k3v   *******************/
+    assign(newVelocity, k2r);      //we don't want to modify k2r, so assign its value to newVelocity;
+    mols(newVelocity, timeStep/2); // new velocity is now a distance.
+    assign (newCoordinates, newVelocity); //so the new coordinates equal the velocity*dt/2...
+    summ(newCoordinates ,object->body->coordinates); //plus the old coordinates.
+    while(currentElement->position != position){
+        //calculates the accleration in the current position and puts it in k3v
+        NewtonGravitation(newCoordinates, currentElement->body->coordinates, k3v, currentElement->body->u);
+        currentElement = currentElement->next;
+    }
+    //k3v holds now the accleration for the body in a hypothetical state
+    currentElement = currentElement->next; //move the list again back to the next element
+
+    /****************** CALCULATE k3r   *******************/
+    assign(k3r, object->body->speedVector); //let's start assigning to k3r the initial speed value
+    assign(newAcceleration, k2v); //we don't want to modify k2v, so assign its value to newAcceleration;
+    mols(newAcceleration, timeStep/2); //new acceleration for half the time = new speed!
+    summ(k3r, newAcceleration); //acceleration is now a speed; k3r = old speed + new speed.
+
+    /****************** CALCULATE k4v   *******************/
+    assign(newVelocity, k3r);      //we don't want to modify k3r, so assign its value to newVelocity;
+    mols(newVelocity, timeStep); // new velocity is now a distance.
+    assign (newCoordinates, newVelocity); //so the new coordinates equal the velocity*dt...
+    summ(newCoordinates ,object->body->coordinates); //plus the old coordinates.
+    while(currentElement->position != position){
+        //calculates the accleration in the current position and puts it in k4v
+        NewtonGravitation(newCoordinates, currentElement->body->coordinates, k4v, currentElement->body->u);
+        currentElement = currentElement->next;
+    }
+    //k4v holds now the accleration for the body in a hypothetical state
+    currentElement = currentElement->next; //move the list again back to the next element
+
+    /****************** CALCULATE k4r   *******************/
+    assign(k4r, object->body->speedVector); //let's start assigning to k4r the initial speed value
+    assign(newAcceleration, k3v); //we don't want to modify k3v, so assign its value to newAcceleration;
+    mols(newAcceleration, timeStep); //new acceleration for half the time = new speed!
+    summ(k4r, newAcceleration); //acceleration is now a speed; k3r = old speed + new speed.
+
+
+/*******************    SAVING   ****************************/
+
+//Assign to "newCoordinates" the final result of the calculation (position).
+    assign(newVelocity, k1r);
+        mols(k2r, 2);
+    summ(newVelocity, k2r);
+        mols(k3r, 2);
+    summ(newVelocity, k3r);
+    summ(newVelocity, k4r);
+    mols(newVelocity, timeStep/6); //newVelocity now contains a deltaPosition
+    summ(newVelocity, object->body->coordinates); // to get the final position I must do coordinates + deltaCoordinates.
+    assign(newCoordinates, newVelocity); //ready to be stored.
+
+    //Assign to "newSpeedVector" the final result of the calculation (speed).
+    assign(newAcceleration, k1v);
+        mols(k2v, 2);
+    summ(newAcceleration, k2v);
+        mols(k3v, 2);
+    summ(newAcceleration, k3v);
+    summ(newAcceleration, k4v);
+    mols(newAcceleration, timeStep/6); //new accleration is the new deltaV
+    summ(newAcceleration, object->body->speedVector); // to get the final speed I must V + deltaV.
+    assign(newSpeedVector, newAcceleration); //ready to be stored.
+}
 
 
 void* SimulationMain(void* input){
@@ -129,7 +225,7 @@ void* SimulationMain(void* input){
             //either WAIT_FOR_START OR SPIN_AT_BARRIER
             condition_wait(data->computation_section);
         }
-        SimpleSimulation(object, newCoordinates, newSpeedVector, newAcceleration);
+        Euler(object, newCoordinates, newSpeedVector, newAcceleration);
 
         //save lock.
         monitor_enter(data->mon);

@@ -1,7 +1,9 @@
 #ifndef SIMULATION
 #define SIMULATION
 
-void SimpleSimulation(struct List** object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector, struct Coordinates* objectCoordinates,struct Coordinates* newAcceleration);
+void Euler(struct List** object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector, struct Coordinates* objectCoordinates,struct Coordinates* newAcceleration);
+
+void RungeKutta(struct List** object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector, struct Coordinates* objectCoordinates,struct Coordinates* newAcceleration);
 
 
 void Save(struct Coordinates** coordinates, struct Coordinates** speedVector, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector);

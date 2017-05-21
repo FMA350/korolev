@@ -43,3 +43,9 @@ void divs(struct Coordinates* a, double b){
     a->y /= b;
     a->z /= b;
 }
+
+void assign(struct Coordinates* a, struct Coordinates* b){
+    a->x = b->x;
+    a->y = b->y;
+    a->z = b->z;
+}
