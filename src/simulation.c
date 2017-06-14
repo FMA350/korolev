@@ -225,7 +225,7 @@ void* SimulationMain(void* input){
             //either WAIT_FOR_START OR SPIN_AT_BARRIER
             condition_wait(data->computation_section);
         }
-        Euler(object, newCoordinates, newSpeedVector, newAcceleration);
+        RungeKutta(object, newCoordinates, newSpeedVector, newAcceleration);
 
         //save lock.
         monitor_enter(data->mon);

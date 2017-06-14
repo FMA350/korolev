@@ -43,8 +43,6 @@ void condition_wait(condition c);
 
 void condition_commander_start(condition c);
 
-void condition_kill_waiting_threads(condition c);
-
 void condition_signal(condition c);
 
 void condition_commander_signal(condition c);

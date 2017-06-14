@@ -50,13 +50,6 @@ void PrintState(char * simulationName, struct List** list){
     fclose(fp);
 }
 
-// void Afterworld(char * simulationName){
-//     //writes the number of iterations of a simulation saved on a file.
-//     FILE * fp;
-//     fp = fopen(strcat(simulationName,".sdata"), "a");
-//     fprintf(fp,"%s%d",LAST_LINE_TOK, sim_iteration-start_iteration);
-// }
-
 int SaveSimulationData(char * simulationName, struct List** list){
   FILE * fp;
   char str[512];
