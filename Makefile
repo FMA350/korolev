@@ -13,9 +13,6 @@ OBJECTS  = $(SOURCES:.c=.o)
 
 EXECUTABLE = $(EXECPATH)korolev
 
-
-
-
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)

@@ -74,13 +74,11 @@ void monitor_destroy(monitor m) {
 }
 
 void monitor_enter(monitor m) {
-	//printf("enter %p\n",m);
 	mutex_in(&m->lock);
 }
 
 void monitor_exit(monitor m) {
-	//printf("exit %p\n",m);
-		mutex_out(&m->lock);
+	mutex_out(&m->lock);
 }
 
 condition condition_create(monitor m, int n_thread_max, int n_iteration, int max_iteration){
@@ -95,6 +93,7 @@ condition condition_create(monitor m, int n_thread_max, int n_iteration, int max
 
 		c->m = m;
 		c->q = NULL;
+		c->commander = NULL;
 	}
 	return c;
 }
@@ -145,7 +144,6 @@ int condition_threads_waiting(condition c){
 }
 
 void condition_wait(condition c) {
-	//printf("wait %p\n",c);
 	c->n_thread_waiting++;
 	tlist_enqueue(&c->q, pthread_self());
 	monitor_exit(c->m);
@@ -156,33 +154,21 @@ void condition_commander_start(condition c){
 	//wake up all the waiting threads
 	//used to avoid busy waiting of the commander
 	tlist_enqueue(&c->commander, pthread_self());
-	// c->n_thread_waiting = 0;
-	// while (!tlist_empty(c->q)) {
-	// 	pthread_t t = tlist_dequeue(&c->q);
-	// 	wakeup(t);
-	// }
 	//release the lock
 	monitor_exit(c->m);
 	suspend();
 }
 
-void condition_kill_waiting_threads(condition c){
-	// while (!tlist_empty(c->q)) {
-	// 	printf("killing one\n");
-	// 	pthread_t t = tlist_dequeue(&c->q);
-	// 	pthread_kill(t, 15);
-	// }
-	// 切腹
-}
+// 切腹
 
 void condition_signal(condition c) {
-		c->n_iteration++;
-		c->n_thread_waiting = 0;
-		while (!tlist_empty(c->q)) {
-			pthread_t t = tlist_dequeue(&c->q);
-			wakeup(t);
-		}
+	c->n_iteration++;
+	c->n_thread_waiting = 0;
+	while (!tlist_empty(c->q)) {
+		pthread_t t = tlist_dequeue(&c->q);
+		wakeup(t);
 	}
+}
 
 void condition_commander_signal(condition c){
 	pthread_t t = tlist_dequeue(&c->commander);
@@ -191,10 +177,8 @@ void condition_commander_signal(condition c){
 
 void simulation_lock_on(condition c){
 	c->lock = 1;
-
 }
 
 void simulation_lock_off(condition c){
 	c->lock = 0;
-
 }

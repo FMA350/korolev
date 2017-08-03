@@ -186,7 +186,7 @@ int Simulate(struct List** celestialBodiesHead){
 	SetToBeginning(celestialBodiesHead);
 	for(int i = 0; i < threadNumber; i++){
 		data[i].simulationName = simulationName;
-		data[i].object = (*celestialBodiesHead);
+		data[i].object = &(*(*celestialBodiesHead));
 		data[i].body   =  &(*(*celestialBodiesHead)->body);
 		printf("in commands, passing body: %s\n",data[i].body->name);
 		data[i].mon    = mon;
