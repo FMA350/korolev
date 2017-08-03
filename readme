@@ -1,13 +1,23 @@
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
 Project start: 10/18/2016
 
 Korolev: Newtonian simulation and Space Guidance for you CL!
 
-
-
 Korolev is program designed to simulate orbital mechanics for you!
 Proudly made for Command Line only.
-
-
 
 Installation:
 
@@ -34,7 +44,7 @@ Korolev knows how to calculate the orbital speed of an object given its orbit
 
 Able to simulate a n-body problem and to solve for a given amount of time-steps using different methods:
 ->Euler method
-->Runge-Kutta 4th method (in development).
+->Runge-Kutta 4th method
 
 Able to add and remove a bodies.
 Able to load and store bodies for further simulations.
@@ -44,17 +54,3 @@ Able to calculate and show the initial energy of a system and the final one (use
 
 Copyright (C) 2017  Francesco Maria Moneta
 francesco.moneta@studio.unibo.it - francesco.moneta@gmail.com
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.

@@ -31,6 +31,10 @@ int ExecuteCommand(char* line){
 		return EXIT;
 	}
 
+	if(strcmp(commandToken,CHANGEMODE) == 0){
+		return ChangeMode();
+	}
+
   if(strcmp(commandToken, CALCULATE_ORBITAL_VELOCITY) == 0){
 		return OrbitalVelocityCommand();
   }
@@ -119,6 +123,7 @@ void PrintAllCommands(){
 	printf(KEVIDENCE"LOAD_SIMULATION "KDATA"= %s\n",LOAD_SIMULATION);
 	printf(KEVIDENCE"ADD_CELESTIAL_BODY"KDATA"=%s\n"KNORMAL,ADD_CELESTIAL_BODY);
 	printf(KEVIDENCE"REMOVE_CELESTIAL_BODY"KDATA"=%s\n"KNORMAL,REMOVE_CELESTIAL_BODY);
+	printf(KEVIDENCE"CHOOSE_NUMERICAL_METHOD"KDATA"=%s\n"KNORMAL,CHANGEMODE);
 }
 
 int AddCelestialBody(struct List **head){
@@ -153,6 +158,8 @@ int RemoveCelestialBody(struct List **list){
 }
 
 int Simulate(struct List** celestialBodiesHead){
+	double initialEnergy;
+	double finalEnergy;
 	start_iteration = sim_iteration;
 	int threadNumber = GetListSize(*celestialBodiesHead);
 	if(threadNumber == 0){
@@ -160,7 +167,8 @@ int Simulate(struct List** celestialBodiesHead){
 		return ERROR_LIST_EMPTY;
 	}
 	SetToBeginning(celestialBodiesHead);
-	printf("Initial system energy: %G", CalculateSystemEnergy((*celestialBodiesHead)));
+	initialEnergy = CalculateSystemEnergy((*celestialBodiesHead));
+	printf("Initial system energy: %G", initialEnergy);
 
 	ThreadData *data = malloc(sizeof(ThreadData)*threadNumber);
 	int max_iteration = RequestInt(0, INT_MAX, "Insert the iterations of the simulation");
@@ -216,12 +224,16 @@ int Simulate(struct List** celestialBodiesHead){
 	printf(KDATA"simulation over at step %d\n\n\n"KNORMAL, condition_current_iteration(data->computation_section));
 
 
-	condition_destroy(computation_section);
-	condition_destroy(saving_section);
-	monitor_destroy(mon);
-	free(data);
-	free(td);
+	 condition_destroy(computation_section);
+	 condition_destroy(saving_section);
+	 //FIXME: monitor_destroy causes seg_fault
+	// monitor_destroy(mon);
+	 free(data);
+	 free(td);
 	printf(KDATA"cleanup completed\n\n\n" KNORMAL);
-	printf("final system energy: %G", CalculateSystemEnergy((*celestialBodiesHead)));
+	finalEnergy = CalculateSystemEnergy((*celestialBodiesHead));
+	printf("final system energy: %G\n", finalEnergy);
+	finalEnergy -= initialEnergy; //reuse finalEnergy
+	printf(KOUTPUT"Energy difference in the simulation: %G"KNORMAL, finalEnergy);
 	return 0;
 }

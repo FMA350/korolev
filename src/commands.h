@@ -14,6 +14,7 @@
 #define REMOVE_CELESTIAL_BODY		"removeBody"
 #define INFO                        "info"
 #define SIMULATE                    "simulate"
+#define CHANGEMODE                  "changeMode"
 
 int ExecuteCommand(char* line);
 

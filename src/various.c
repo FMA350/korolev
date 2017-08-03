@@ -6,11 +6,14 @@
 #include "various.h"
 #include "error.h"
 #include "orbitalFunctions.h"
+#include "simulation.h"
 
-static const double GravConstG = 6.67408e-11;
+//static const double GravConstG = 6.67408e-11;
 extern struct List * celestialBodiesHead;
+extern int simulationMethodFlag;
+extern void (*SimulationMethod)(struct List*, struct Coordinates*, struct Coordinates*,struct Coordinates*);
 
-double RequestInt(int min, int max, char* message){
+int RequestInt(int min, int max, char* message){
 		printf("**Program Request**\n"
 					  "Int Value Required: %s \n"
 						"Values expected: Min: %d, Max: %d \n", message, min, max);
@@ -93,7 +96,6 @@ struct Coordinates* RequestCoordinateSet(char* message){
          return coordinates;
 }
 
-
 CelestialBody* GetCelestialBody(char* name,struct List* list){
 	if(!list) return NULL;
 	if(!name) return NULL;
@@ -135,76 +137,6 @@ struct List * GetList(char *name, struct List *list){
 	}
 	printf(KERROR"Could not find specified list with body %s, returning null"KNORMAL, name);
 	return NULL;
-}
-
-
-//PRINT METHODS
-void PrintHelloMessage(){
-
-  printf(KOUTPUT"\n\n\n                                               Korolev Space Guidance System 0.0.1\n\n\n"KEVIDENCE
-  "                  :\n"
-  "                  :\n"
-  "                  :\n"
-  "                  :\n"
-  "   .              :\n"
-  "    '.            :           .'\n"
-  "      '.          :         .'\n"
-  "        '.   .-''''''-.   .'      "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE"           .'':\n"
-  "          '.'          '.'        "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE"     .-''''-.'         .---.      "KDATA"    .----.     ""   .-'''-.\n"KEVIDENCE
-  "           :            :         "KNORMAL"     "KEVIDENCE"  _  "KDATA"  _  "KERROR"    "KEVIDENCE"   .'     .' '.    ...'     '...  "KDATA"  .'      '.   "" .'       '.\n"KEVIDENCE
-  "   .........            ......... "KNORMAL"   o "KEVIDENCE" (_) "KDATA" (_) "KERROR" () "KEVIDENCE"   :    .'    :   '..:.......:..' "KDATA"  :        :   "" :         : "KEVIDENCE"  o\n"
-  "           :            :         "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE"   :  .'      :       '.....'     "KDATA"  '.      .'   "" '.       .'\n"KEVIDENCE
-  "            :          :          "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE" .'.'.      .'                    "KDATA"    `''''`     ""   `'''''`\n"KEVIDENCE
-  "             '........'           "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE" ''   ``````\n"
-  "            .'    :   '.\n"
-  "          .'      :     '.\n"
-  "        .'        :       '.\n"
-  "      .'          :         '.\n"
-  "                  :\n"
-  "                  :\n"
-  "  Dana97          :\n"
-  "  fma350          :\n"KNORMAL);
-}
-
-void PrintAllBodies(struct List* list){
-	printf("List of availeable bodies \n\n");
-	if(!list){
-		printf("No bodies are present!\n");
-		return;
-	}
-	SetToBeginning(&list);
-	int numberOfBodies = list->previous->position;
-	for(int i = 0; i <= numberOfBodies; i++){
-		if(list->body->referenceBody!=NULL){
-		printf(KDATA"Body number %i:"KEVIDENCE" %s, referenceBody: %s mass: %G\n"KNORMAL, i, list->body->name, list->body->referenceBody->name, list->body->mass);
-		}
-		else{
-			printf(KDATA"Body number %i:"KEVIDENCE" %s, referenceBody: N.A. mass: %G\n"KNORMAL, i, list->body->name, list->body->mass);
-		}
-		printf("list->previous = %s, list->next = %s\n\n",list->previous->body->name, list->next->body->name);
-
-		list = list->next;
-	}
-}
-
-void PrintDetails(char* name, struct List* list){
-	CelestialBody *body = GetCelestialBody(name, list);
-	if(!body){
-		printf(KERROR"body could not be found!\n"KNORMAL);
-		return;
-	}
-	printf(KOUTPUT"Mass of the object:"KDATA" %G kg\n",body->mass );
-
-	printf(KOUTPUT"Position vector (m):\n"KDATA);
-	printf("x = %G\n",body->coordinates->x);
-	printf("y = %G\n",body->coordinates->y);
-	printf("z = %G\n",body->coordinates->z);
-	printf(KOUTPUT"Velocity vector(m/s):\n"KDATA);
-	printf("x = %G\n",body->speedVector->x);
-	printf("y = %G\n",body->speedVector->y);
-	printf("z = %G\n",body->speedVector->z);
-	printf(KOUTPUT"Constant U:"KDATA"%G\n"KNORMAL, body->u );
-
 }
 
 //STRUCT CREATION METHODS
@@ -297,7 +229,7 @@ void UpdatePosition(struct List **list){
     (*list) = (*list)->next;
   }
 }
-//FIXME
+
 void SetToBeginning(struct List **list){
 	if(!*list) return;
 	while((*list)->position != 0){
@@ -306,7 +238,6 @@ void SetToBeginning(struct List **list){
 	return;
 }
 
-//FIXME
 int RemoveList(struct List** list){
   if(!list){
     printf("Nothing to remove");
@@ -322,7 +253,6 @@ int RemoveList(struct List** list){
     return 0;
   }
   else{
-		//FIXME
 		printf("multiple elements in the list\n");
     (*list)->previous->next = (*list)->next;
     (*list)->next->previous = (*list)->previous;
@@ -333,4 +263,91 @@ int RemoveList(struct List** list){
     UpdatePosition(list);
     return 0;
   }
+}
+
+//Commands
+
+int ChangeMode(){
+	if(simulationMethodFlag == 0){
+		printf(KOUTPUT"SimulationMethod = Runge-Kutta 4th order\n"KNORMAL);
+	}
+	else if(simulationMethodFlag == 1){
+		printf(KOUTPUT"SimulationMethod = Euler\n"KNORMAL);
+	}
+	simulationMethodFlag = RequestInt(0,1,"Choose the method to use for the simulation:\n 0 for Runge-Kutta (stable)\n1 for Euler (unstable)");
+	if(simulationMethodFlag == 0){
+		SimulationMethod = &RungeKutta;
+	}
+	else{
+		SimulationMethod = &Euler;
+	}
+	return 0;
+}
+
+//PRINT METHODS
+void PrintHelloMessage(){
+
+  printf(KOUTPUT"\n\n\n                                               Korolev Space Guidance System 0.0.1\n\n\n"KEVIDENCE
+  "                  :\n"
+  "                  :\n"
+  "                  :\n"
+  "                  :\n"
+  "   .              :\n"
+  "    '.            :           .'\n"
+  "      '.          :         .'\n"
+  "        '.   .-''''''-.   .'      "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE"           .'':\n"
+  "          '.'          '.'        "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE"     .-''''-.'         .---.      "KDATA"    .----.     ""   .-'''-.\n"KEVIDENCE
+  "           :            :         "KNORMAL"     "KEVIDENCE"  _  "KDATA"  _  "KERROR"    "KEVIDENCE"   .'     .' '.    ...'     '...  "KDATA"  .'      '.   "" .'       '.\n"KEVIDENCE
+  "   .........            ......... "KNORMAL"   o "KEVIDENCE" (_) "KDATA" (_) "KERROR" () "KEVIDENCE"   :    .'    :   '..:.......:..' "KDATA"  :        :   "" :         : "KEVIDENCE"  o\n"
+  "           :            :         "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE"   :  .'      :       '.....'     "KDATA"  '.      .'   "" '.       .'\n"KEVIDENCE
+  "            :          :          "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE" .'.'.      .'                    "KDATA"    `''''`     ""   `'''''`\n"KEVIDENCE
+  "             '........'           "KNORMAL"     "KEVIDENCE"     "KDATA"     "KERROR"    "KEVIDENCE" ''   ``````\n"
+  "            .'    :   '.\n"
+  "          .'      :     '.\n"
+  "        .'        :       '.\n"
+  "      .'          :         '.\n"
+  "                  :\n"
+  "                  :\n"
+  "  Dana97          :\n"
+  "  fma350          :\n"KNORMAL);
+}
+
+void PrintAllBodies(struct List* list){
+	printf("List of availeable bodies \n\n");
+	if(!list){
+		printf("No bodies are present!\n");
+		return;
+	}
+	SetToBeginning(&list);
+	int numberOfBodies = list->previous->position;
+	for(int i = 0; i <= numberOfBodies; i++){
+		if(list->body->referenceBody!=NULL){
+		printf(KDATA"Body number %i:"KEVIDENCE" %s, referenceBody: %s mass: %G\n"KNORMAL, i, list->body->name, list->body->referenceBody->name, list->body->mass);
+		}
+		else{
+			printf(KDATA"Body number %i:"KEVIDENCE" %s, referenceBody: N.A. mass: %G\n"KNORMAL, i, list->body->name, list->body->mass);
+		}
+		printf("list->previous = %s, list->next = %s\n\n",list->previous->body->name, list->next->body->name);
+
+		list = list->next;
+	}
+}
+
+void PrintDetails(char* name, struct List* list){
+	CelestialBody *body = GetCelestialBody(name, list);
+	if(!body){
+		printf(KERROR"body could not be found!\n"KNORMAL);
+		return;
+	}
+	printf(KOUTPUT"Mass of the object:"KDATA" %G kg\n",body->mass );
+
+	printf(KOUTPUT"Position vector (m):\n"KDATA);
+	printf("x = %G\n",body->coordinates->x);
+	printf("y = %G\n",body->coordinates->y);
+	printf("z = %G\n",body->coordinates->z);
+	printf(KOUTPUT"Velocity vector(m/s):\n"KDATA);
+	printf("x = %G\n",body->speedVector->x);
+	printf("y = %G\n",body->speedVector->y);
+	printf("z = %G\n",body->speedVector->z);
+	printf(KOUTPUT"Constant U:"KDATA"%G\n"KNORMAL, body->u );
 }

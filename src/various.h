@@ -14,6 +14,7 @@ const char * WELCOME_TEXT;
 
 //static struct List* celestialBodiesHead;
 
+
 struct Coordinates{
 	double x;
 	double y;
@@ -62,7 +63,7 @@ struct List{
 	} CelestialBody;
 
 /*****Request Functions Prototypes*****/
-double RequestInt(int min, int max, char* message);
+int RequestInt(int min, int max, char* message);
 
 double RequestDouble(double min, double max, char * message);
 
@@ -108,5 +109,7 @@ void UpdatePosition(struct List **list);
 void SetToBeginning(struct List **list);
 
 int RemoveList(struct List **list);
+
+int ChangeMode();
 
 #endif
