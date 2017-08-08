@@ -16,18 +16,23 @@ extern void (*SimulationMethod)(struct List*, struct Coordinates*, struct Coordi
 
 // simulation methods
 
-void Save(struct Coordinates* coordinates, struct Coordinates* speedVector, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector){
-    coordinates->x = newCoordinates->x;
-    coordinates->y = newCoordinates->y;
-    coordinates->z = newCoordinates->z;
+// void Save(struct Coordinates** coordinates, struct Coordinates** speedVector, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector){
+//     (*coordinates)->x = newCoordinates->x;
+//     (*coordinates)->y = newCoordinates->y;
+//     (*coordinates)->z = newCoordinates->z;
+//
+//     (*speedVector)->x = newSpeedVector->x;
+//     (*speedVector)->y = newSpeedVector->y;
+//     (*speedVector)->z = newSpeedVector->z;
+// }
 
-    speedVector->x = newSpeedVector->x;
-    speedVector->y = newSpeedVector->y;
-    speedVector->z = newSpeedVector->z;
+void Save(struct Coordinates* coordinates, struct Coordinates* speedVector, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector){
+    assign(coordinates, newCoordinates);
+    assign(speedVector, newSpeedVector);
 }
 
 void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* otherElementPosition, struct Coordinates* newAcceleration, double u){
-    //Instant accleration felt by objects.
+    //Instant accleration felt by an object due to another object
     double rx = otherElementPosition->x -  myPosition->x;
     double ry = otherElementPosition->y -  myPosition->y;
     double rz = otherElementPosition->z -  myPosition->z;
@@ -43,23 +48,30 @@ void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* other
 void Euler(struct List* object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector,struct Coordinates* newAcceleration){
     //it does not conserve the energy
     int position = object->position;
+
+    struct Coordinates* temp = createCoordinateSet(0,0,0);
     struct List *currentElement = &(*object->next);
     while(currentElement->position != position){
         NewtonGravitation(object->body->coordinates, currentElement->body->coordinates, newAcceleration, currentElement->body->u);
         currentElement = currentElement->next;
-        }
+    }
     //new coordinates using the old value for the speed.
-    newCoordinates->x += object->body->speedVector->x * timeStep;
-    newCoordinates->y += object->body->speedVector->y * timeStep;
-    newCoordinates->z += object->body->speedVector->z * timeStep;
+    assign(newCoordinates, object->body->coordinates);
+    assign(temp, object->body->speedVector);
+    mols(temp, timeStep);
+    summ(newCoordinates, temp);
+
     //new speedVector adding V.old + a.new *dt
-    newSpeedVector->x = object->body->speedVector->x + newAcceleration->x *timeStep;
-    newSpeedVector->y = object->body->speedVector->y + newAcceleration->y *timeStep;
-    newSpeedVector->z = object->body->speedVector->z + newAcceleration->z *timeStep;
+    assign(temp, object->body->speedVector);
+    mols(newAcceleration, timeStep);
+    summ(temp, newAcceleration);
+    assign(newSpeedVector, temp);
+
 
     newAcceleration->x = 0;
     newAcceleration->y = 0;
     newAcceleration->z = 0;
+    free(temp);
 }
 
  void RungeKutta(struct List* object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector,struct Coordinates* newAcceleration){
@@ -83,7 +95,6 @@ void Euler(struct List* object, struct Coordinates* newCoordinates, struct Coord
     struct Coordinates* k4v = createCoordinateSet(0,0,0);
 
     struct Coordinates* newVelocity     = createCoordinateSet(0,0,0);
-    //struct Coordinates* newAcceleration = createCoordinateSet(0,0,0);
 
     int position = object->position;
     struct List *currentElement = &(*object->next);
@@ -150,7 +161,6 @@ void Euler(struct List* object, struct Coordinates* newCoordinates, struct Coord
         currentElement = currentElement->next;
     }
     //k4v holds now the accleration for the body in a hypothetical state
-    currentElement = currentElement->next; //move the list again back to the next element
 
     /****************** CALCULATE k4r   *******************/
     assign(k4r, object->body->speedVector); //let's start assigning to k4r the initial speed value
@@ -198,18 +208,17 @@ void Euler(struct List* object, struct Coordinates* newCoordinates, struct Coord
 
 void* SimulationMain(void* input){
         ThreadData* data = (ThreadData*) input;
-        int code;
-        struct List * object = data->object;
-        //struct List * object = (*obj);
+        int code; //flag used for multithreading
+        struct List ** object = &data->object; //pointer to obj
 
-        struct Coordinates* objectSpeedVector      = &(*data->body->speedVector);
-        struct Coordinates* objectCoordinates      = &(*data->body->coordinates);
-        struct Coordinates* newSpeedVector = createCoordinateSet(data->body->speedVector->x,
-                                                                 data->body->speedVector->y,
-                                                                 data->body->speedVector->z);
-        struct Coordinates* newCoordinates = createCoordinateSet(object->body->coordinates->x,
-                                                                 object->body->coordinates->y,
-                                                                 object->body->coordinates->z);
+        struct Coordinates** objectSpeedVector      = &(data->body->speedVector);
+        struct Coordinates** objectCoordinates      = &(data->body->coordinates);
+        struct Coordinates* newSpeedVector = createCoordinateSet((*object)->body->speedVector->x,
+                                                                 (*object)->body->speedVector->y,
+                                                                 (*object)->body->speedVector->z);
+        struct Coordinates* newCoordinates = createCoordinateSet((*object)->body->coordinates->x,
+                                                                 (*object)->body->coordinates->y,
+                                                                 (*object)->body->coordinates->z);
         struct Coordinates* newAcceleration = createCoordinateSet(0,0,0);
 
     while(1){
@@ -228,7 +237,7 @@ void* SimulationMain(void* input){
         }
         else if(code == BREAK_BARRIER){
             sim_iteration++;
-            PrintState(data->simulationName, &object);
+            PrintState(data->simulationName, object);
             condition_signal(data->computation_section); //wake up all the threads
             monitor_exit(data->mon);
         }
@@ -236,7 +245,8 @@ void* SimulationMain(void* input){
             //either WAIT_FOR_START OR SPIN_AT_BARRIER
             condition_wait(data->computation_section);
         }
-        SimulationMethod(object, newCoordinates, newSpeedVector, newAcceleration);
+        //Euler(object, newCoordinates, newSpeedVector, newAcceleration);
+        SimulationMethod((*object), newCoordinates, newSpeedVector, newAcceleration);
 
         //save lock.
         monitor_enter(data->mon);
@@ -247,12 +257,15 @@ void* SimulationMain(void* input){
         else{
             condition_wait(data->saving_section);
         }
-        Save(object->body->coordinates, object->body->speedVector, newCoordinates, newSpeedVector);
+
+        Save((*object)->body->coordinates, (*object)->body->speedVector, newCoordinates, newSpeedVector);
+        //Save(objectCoordinates, objectSpeedVector, newCoordinates, newSpeedVector);
         monitor_enter(data->mon);
-        PrintDetails(data->body->name, data->object);
+        //PrintDetails(data->body->name, data->object);
+        PrintDetails(data->body->name, *object);
+
         monitor_exit(data->mon);
     }
-
 }
 
 void* SimulationCommander(void* input){

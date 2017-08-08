@@ -9,9 +9,8 @@
 
 double CalculateSystemEnergy(struct List *list){
     //TODO: could be heavily optimized
-    SetToBeginning(&list);
-    double totalEnergy  = 0;
 
+    double totalEnergy = 0;
     double energy;
     double mass;
     double distance;
@@ -19,9 +18,10 @@ double CalculateSystemEnergy(struct List *list){
     double px;
     double py;
     double pz;
-    double rx;// = otherElementPosition->x -  myPosition->x;
-    double ry;// = otherElementPosition->y -  myPosition->y;
-    double rz;// = otherElementPosition->z -  myPosition->z;
+    double rx;
+    double ry;
+    double rz;
+    SetToBeginning(&list);
     int numberOfBodies = list->previous->position; //since we are at position 0;
     for(int i = 0; i <= numberOfBodies; i++){
         //save some useful data that we will use later
@@ -36,8 +36,9 @@ double CalculateSystemEnergy(struct List *list){
                                     list->body->speedVector->y*list->body->speedVector->y+
                                     list->body->speedVector->z*list->body->speedVector->z)/2;
         //and the gravitational potential energy G*m*M/r for each object
-        list = list->next;
+
         for(int j = 0; j < numberOfBodies; j++){
+        list = list->next;
              //we will do a full cicle of the list
             rx = px-list->body->coordinates->x; //x distance
             ry = py-list->body->coordinates->y; //y distance
@@ -47,7 +48,6 @@ double CalculateSystemEnergy(struct List *list){
             energy -= (GravConstG*mass*list->body->mass)/distance;
             /*negative since gravitational potential energy is negative.
             the work that the gravity does attracting a planet is thus positive. */
-            list = list->next; //repeat with the next object;
         }
         if(energy<0){
             printf(KDATA"The object %s has energy %G J and is in a stable elliptical orbit\n"KNORMAL, list->body->name, energy);
@@ -56,8 +56,9 @@ double CalculateSystemEnergy(struct List *list){
             printf(KDATA"The object %s has energy %G J and is being ejected from the system \n"KNORMAL, list->body->name, energy );
         }
         totalEnergy += energy;
-        list = list->next;
+        list = list->next->next; //goes to the next element (list->current->next)
     }
+
     return totalEnergy;
 }
 

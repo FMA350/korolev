@@ -13,7 +13,9 @@ extern int start_iteration;
 void PrintHeader(char * simulationName, struct List** list){
     FILE * fp;
     char str[512];
-    fp = fopen(strcat(simulationName,".slog"), "a");
+    strcpy(str,simulationName);
+    strcat(str,".slog");
+    fp = fopen(str, "a");
     time_t rawtime = time(NULL);
     time ( &rawtime );
     struct tm *timeinfo = localtime ( &rawtime );
@@ -24,9 +26,13 @@ void PrintHeader(char * simulationName, struct List** list){
 }
 
 void PrintState(char * simulationName, struct List** list){
+    int position = (*list)->position;
     SetToBeginning(list);
     FILE * fp;
-    fp = fopen(simulationName, "a");
+    char str[512];
+    strcpy(str,simulationName);
+    strcat(str,".slog");
+    fp = fopen(str, "a");
     do{
         if(!(*list)->body->referenceBody){
             fprintf(fp,"null%s", TOKENIZER_STR);
@@ -48,6 +54,10 @@ void PrintState(char * simulationName, struct List** list){
              (*list) = (*list)->next;
     }while((*list)->position != 0);
     fclose(fp);
+
+    while((*list)->position != position){
+        (*list) = (*list)->next;
+    }
 }
 
 int SaveSimulationData(char * simulationName, struct List** list){

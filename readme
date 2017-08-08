@@ -51,6 +51,8 @@ Able to load and store bodies for further simulations.
 Able to store a log of the simulation (saves the object info at every time-step) for further analysis.
 Able to calculate and show the initial energy of a system and the final one (useful to analyze the accuracy of the methods).
 
+-Graphical
+Korolev plots your simulation in both 2d and 3d using Gnuplot automatically.
 
 Copyright (C) 2017  Francesco Maria Moneta
 francesco.moneta@studio.unibo.it - francesco.moneta@gmail.com

@@ -349,5 +349,5 @@ void PrintDetails(char* name, struct List* list){
 	printf("x = %G\n",body->speedVector->x);
 	printf("y = %G\n",body->speedVector->y);
 	printf("z = %G\n",body->speedVector->z);
-	printf(KOUTPUT"Constant U:"KDATA"%G\n"KNORMAL, body->u );
+	//printf(KOUTPUT"Constant U:"KDATA"%G\n"KNORMAL, body->u );
 }

@@ -124,6 +124,9 @@ void PrintAllCommands(){
 	printf(KEVIDENCE"ADD_CELESTIAL_BODY"KDATA"=%s\n"KNORMAL,ADD_CELESTIAL_BODY);
 	printf(KEVIDENCE"REMOVE_CELESTIAL_BODY"KDATA"=%s\n"KNORMAL,REMOVE_CELESTIAL_BODY);
 	printf(KEVIDENCE"CHOOSE_NUMERICAL_METHOD"KDATA"=%s\n"KNORMAL,CHANGEMODE);
+	printf(KEVIDENCE"SIMULATE_SYSTEM"KDATA"= simulate\n"KNORMAL);
+
+
 }
 
 int AddCelestialBody(struct List **head){
@@ -235,5 +238,15 @@ int Simulate(struct List** celestialBodiesHead){
 	printf("final system energy: %G\n", finalEnergy);
 	finalEnergy -= initialEnergy; //reuse finalEnergy
 	printf(KOUTPUT"Energy difference in the simulation: %G"KNORMAL, finalEnergy);
+	char plotCommand[512];
+	//2d
+	strcpy(plotCommand,"gnuplot -c gnuplot/2d.plt ");
+	strcat(plotCommand, simulationName);
+	system(plotCommand);
+	//3d
+	strcpy(plotCommand, "gnuplot -c gnuplot/3d.plt ");
+	strcat(plotCommand, simulationName);
+	system(plotCommand);
+
 	return 0;
 }

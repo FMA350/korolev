@@ -12,7 +12,6 @@
 const char * DELIMITER;
 const char * WELCOME_TEXT;
 
-//static struct List* celestialBodiesHead;
 
 
 struct Coordinates{
@@ -90,8 +89,6 @@ void PrintDetails(char* name, struct List* list);
 /***** List Functions Prototypes*****/
 
 struct List* CreateListElement();
-
-
 
 void CreateCelestialBody(struct List* holder, CelestialBody* referenceBody,
 	 																 char* name, double mass,
