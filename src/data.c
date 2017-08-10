@@ -99,6 +99,7 @@ int LoadSimulationData(char * simulationName, struct List** list){
   int numberOfObjects = 0;
   fp = fopen(strcat(simulationName,".sdata"), "r");
   if(!fp){
+     printf("File %s.sdata could not be found!\n", simulationName);
     return ERROR_FILE_DOES_NOT_EXIST;
   }
   if(fgets(str, 512, fp)==NULL){
