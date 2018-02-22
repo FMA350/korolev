@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-#include <error.h>
-#include <various.h>
+#include "error.h"
+#include "various.h"
 
 static const char * TOKENIZER_STR = ";";
-// static const char * LAST_LINE_TOK = "@";
 extern int sim_iteration;
 extern int start_iteration;
 
@@ -20,7 +20,7 @@ void PrintHeader(char * simulationName, struct List** list){
     time ( &rawtime );
     struct tm *timeinfo = localtime ( &rawtime );
     strftime(str, 512,"%c", timeinfo);
-    fprintf(fp,"%s%s%d%s%d\n",str, TOKENIZER_STR, sim_iteration, TOKENIZER_STR, GetListSize(*list)); //time;initialIteration;objects
+    fprintf(fp,"%s%s%d%s%d\n",str, TOKENIZER_STR, sim_iteration, TOKENIZER_STR, GetListSize(*list));
     //GetListSize sets the list at the beggining already.
     fclose(fp);
 }

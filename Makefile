@@ -1,25 +1,36 @@
-CC = gcc
-LL = gcc
-CFLAGS = -c -include 'signal.h' -include 'stdlib.h' -include 'pthread.h' -include 'limits.h' -include 'stdio.h' -include 'unistd.h' -I $(SRCPATH) -I .
-LFLAGS = -lm -lpthread
+CC        := gcc
+LL        := gcc
+CFLAGS    := -c
+# -include 'signal.h' -include 'stdlib.h' -include 'pthread.h' -include 'limits.h' -include 'stdio.h' -include 'unistd.h'
+LFLAGS    := -lm -lpthread
 
-EXECPATH = builds/
-SRCPATH  = src/
+EXECPATH  := builds
+SRCPATH   := src
+STRUCTURE := $(shell find $(SRCPATH) -type d)
 
-CFILES   = main.c error.c commands.c orbitalFunctions.c various.c data.c \
- 		   simulation.c monitor.c tlist.c suspend.c matmath.c
-SOURCES  = $(addprefix $(SRCPATH), $(CFILES))
-OBJECTS  = $(SOURCES:.c=.o)
+SRCFILES  := $(addsuffix /* , $(STRUCTURE))
+SRCFILES  := $(wildcard $(SRCFILES))
 
-EXECUTABLE = $(EXECPATH)korolev
+CFILES 	  := $(filter %.c,$(SRCFILES))
+HDRFILES  := $(filter %.h,$(SRCFILES))
+OBJFILES  := $(CFILES:%.c=%.o)
+OBJFILES  := $(filter-out src/init.o, $(OBJFILES))
+
+# SOURCES  = $(addprefix $(SRCPATH), $(CFILES))
+# OBJECTS  = $(SOURCES:.c=.o)
+
+EXECUTABLE = $(EXECPATH)/korolev
 
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS)
-	$(LL) $(LFLAGS) $(OBJECTS) -o $@
+$(EXECUTABLE): $(OBJFILES)
+	$(LL) $(LFLAGS) $(OBJFILES) -o $@
 
-.c.o:
+%.o:%.c
 	$(CC) $(CFLAGS) $< -o $@
+# .c.o:
+# 	$(CC) $(CFLAGS) $< -o $@
 
+.PHONY : clean
 clean:
-	rm $(SRCPATH)*.o
+	rm $(OBJFILES)

@@ -20,9 +20,9 @@
  *
  */
 
-#include<pthread.h>
-#include<stdlib.h>
-#include<tlist.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include "tlist.h"
 
 struct tlist {
 	struct tlist *next;

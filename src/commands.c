@@ -3,6 +3,7 @@
 #include <float.h>
 #include <string.h>
 #include <limits.h>
+#include <pthread.h>
 
 //Header
 #include "commands.h"

@@ -1,9 +1,15 @@
+#include <math.h>
+#include <stdlib.h>
+#include <pthread.h> //for pthread_exit
+#include <stdio.h>
+#include <unistd.h>  //for sleep
+#include  <time.h>   //to calculate efficiency and time
+
 #include "monitor.h"
 #include "various.h"
 #include "data.h"
 #include "matmath.h"
-//#include "main.c"
-#include <math.h>
+
 
 
 //double timeStep = 86400; //day
@@ -12,19 +18,9 @@ double timeStep = 3600; //hour
 extern int sim_iteration;
 extern void (*SimulationMethod)(struct List*, struct Coordinates*, struct Coordinates*,struct Coordinates*);
 
-//time_t SimulationTime;
+time_t SimulationTime;
 
 // simulation methods
-
-// void Save(struct Coordinates** coordinates, struct Coordinates** speedVector, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector){
-//     (*coordinates)->x = newCoordinates->x;
-//     (*coordinates)->y = newCoordinates->y;
-//     (*coordinates)->z = newCoordinates->z;
-//
-//     (*speedVector)->x = newSpeedVector->x;
-//     (*speedVector)->y = newSpeedVector->y;
-//     (*speedVector)->z = newSpeedVector->z;
-// }
 
 void Save(struct Coordinates* coordinates, struct Coordinates* speedVector, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector){
     assign(coordinates, newCoordinates);
@@ -46,7 +42,7 @@ void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* other
 }
 
 void Euler(struct List* object, struct Coordinates* newCoordinates, struct Coordinates* newSpeedVector,struct Coordinates* newAcceleration){
-    //it does not conserve the energy
+    //it does not conserve the energy of the system for a long time.
     int position = object->position;
 
     struct Coordinates* temp = createCoordinateSet(0,0,0);
@@ -211,8 +207,8 @@ void* SimulationMain(void* input){
         int code; //flag used for multithreading
         struct List ** object = &data->object; //pointer to obj
 
-        struct Coordinates** objectSpeedVector      = &(data->body->speedVector);
-        struct Coordinates** objectCoordinates      = &(data->body->coordinates);
+        //struct Coordinates** objectSpeedVector      = &(data->body->speedVector);
+        //struct Coordinates** objectCoordinates      = &(data->body->coordinates);
         struct Coordinates* newSpeedVector = createCoordinateSet((*object)->body->speedVector->x,
                                                                  (*object)->body->speedVector->y,
                                                                  (*object)->body->speedVector->z);
@@ -261,9 +257,7 @@ void* SimulationMain(void* input){
         Save((*object)->body->coordinates, (*object)->body->speedVector, newCoordinates, newSpeedVector);
         //Save(objectCoordinates, objectSpeedVector, newCoordinates, newSpeedVector);
         monitor_enter(data->mon);
-        //PrintDetails(data->body->name, data->object);
         PrintDetails(data->body->name, *object);
-
         monitor_exit(data->mon);
     }
 }
@@ -275,6 +269,7 @@ void* SimulationCommander(void* input){
         printf("sleeping...\n");
         sleep(1);
     }
+    clock_t launch = clock();
     monitor_enter(data->mon);
     printf("All threads ready, starting...\n");
     simulation_lock_off(data->computation_section);
@@ -287,6 +282,9 @@ void* SimulationCommander(void* input){
     //waits for the simulation to be over.
 
     printf("commander awakened at the computation_section\n");
+    clock_t done = clock();
+    double diff = ((double)done - (double)launch) / CLOCKS_PER_SEC;
+    printf("total time: %f\n",diff);
     monitor_enter(data->mon);
     simulation_lock_on(data->computation_section);
     simulation_lock_on(data->saving_section);

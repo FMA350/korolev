@@ -1,11 +1,11 @@
 #ifndef MONITOR_H
 #define MONITOR_H
-#include<stdio.h>
-#include<pthread.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<suspend.h>
-#include<semaphore.h>
+// #include<stdio.h>
+// #include<pthread.h>
+// #include<stdlib.h>
+// #include<unistd.h>
+// // #include<suspend.h>
+// #include<semaphore.h>
 
 #define SIMULATION_END 4
 #define EXIT_THREAD    3

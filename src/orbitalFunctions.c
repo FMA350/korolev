@@ -1,7 +1,7 @@
 //various
 #include <stdio.h>
 #include <math.h>
-#include <various.h>
+#include "various.h"
 
 
 //header

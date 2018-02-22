@@ -27,11 +27,12 @@
 #include<pthread.h>
 #include<stdlib.h>
 #include<unistd.h>
-#include<suspend.h>
-#include<monitor.h>
-#include<tlist.h>
+
+#include "monitor.h"
+#include "tlist.h"
 #include <signal.h>
 #include "various.h"
+#include "suspend.h"
 
 #define mutex_in(X) pthread_mutex_lock(X)
 #define mutex_out(X) pthread_mutex_unlock(X)
