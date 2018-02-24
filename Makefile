@@ -1,7 +1,6 @@
 CC        := gcc
 LL        := gcc
 CFLAGS    := -c
-# -include 'signal.h' -include 'stdlib.h' -include 'pthread.h' -include 'limits.h' -include 'stdio.h' -include 'unistd.h'
 LFLAGS    := -lm -lpthread
 
 EXECPATH  := builds

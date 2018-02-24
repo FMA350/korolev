@@ -27,19 +27,6 @@ struct List{
 		 struct CelestialBody* body;
 	};
 
-	typedef struct ThreadData{
-		//char * line; //type of simulation to use
-		char *simulationName; //for saving purposes.
-		struct List* object;
-		struct CelestialBody* body;
-		monitor mon;
-		condition computation_section;
-		condition saving_section;
-
-		int numberOfThreads;
-		int thread_id;
-	} ThreadData;
-
 	typedef struct CelestialBody{
 		struct CelestialBody* referenceBody;
 		char * name;

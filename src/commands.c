@@ -1,5 +1,6 @@
 //Various
 #include <stdio.h>
+#include <stdlib.h>
 #include <float.h>
 #include <string.h>
 #include <limits.h>
@@ -26,6 +27,7 @@ const int PARTITION_PARTS = 10; 	//to choose in how many parts the the orbit sho
 
 
 int ExecuteCommand(char* line){
+	//command dispatcher
 	char *commandToken = line;
 
 	if(strcmp(commandToken, EXIT_COMMAND) == 0){
@@ -161,6 +163,36 @@ int RemoveCelestialBody(struct List **list){
 	}
 }
 
+int CreateSimulationThreadData(SimulationThreadData* data, char* simulationName, struct List**celestialBodiesHead, monitor mon, condition computation_section, condition saving_section, int threadNumber, int i){
+	data->simulationName = simulationName;
+	data->object = &(*(*celestialBodiesHead));
+	data->body   =  &(*(*celestialBodiesHead)->body);
+	data->mon    = mon;
+	data->computation_section = computation_section;
+	data->saving_section      = saving_section;
+	data->numberOfThreads = threadNumber;
+	data->thread_id = i;
+
+	data->newVelocity = createCoordinateSet(0,0,0);
+	data->newCoordinates = createCoordinateSet(0,0,0);
+	data->newAcceleration = createCoordinateSet(0,0,0);
+	if(SimulationMethodFlag == 0){
+		//if simulation method is Runge-Kutta
+		data->k1r = createCoordinateSet(0,0,0);
+		data->k2r = createCoordinateSet(0,0,0);
+		data->k3r = createCoordinateSet(0,0,0);
+		data->k4r = createCoordinateSet(0,0,0);
+		data->k1v = createCoordinateSet(0,0,0);
+		data->k2v = createCoordinateSet(0,0,0);
+		data->k3v = createCoordinateSet(0,0,0);
+		data->k4v = createCoordinateSet(0,0,0);
+	}
+	else{
+		data->temp = createCoordinateSet(0,0,0);
+	}
+	return 0;
+}
+
 int Simulate(struct List** celestialBodiesHead){
 	double initialEnergy;
 	double finalEnergy;
@@ -174,7 +206,7 @@ int Simulate(struct List** celestialBodiesHead){
 	initialEnergy = CalculateSystemEnergy((*celestialBodiesHead));
 	printf("Initial system energy: %G", initialEnergy);
 
-	ThreadData *data = malloc(sizeof(ThreadData)*threadNumber);
+	SimulationThreadData *data = malloc(sizeof(SimulationThreadData)*threadNumber);
 	int max_iteration = RequestInt(0, INT_MAX, "Insert the iterations of the simulation");
 	char * simulationName = RequestString("Name of the simulation",0);
 	PrintHeader(simulationName, celestialBodiesHead); //adds .slog to simulationName
@@ -189,16 +221,7 @@ int Simulate(struct List** celestialBodiesHead){
 	pthread_t * td = malloc(sizeof(pthread_t)*(threadNumber+1));
 	SetToBeginning(celestialBodiesHead);
 	for(int i = 0; i < threadNumber; i++){
-		data[i].simulationName = simulationName;
-		data[i].object = &(*(*celestialBodiesHead));
-		data[i].body   =  &(*(*celestialBodiesHead)->body);
-		printf("in commands, passing body: %s\n",data[i].body->name);
-		data[i].mon    = mon;
-		data[i].computation_section = computation_section;
-		data[i].saving_section      = saving_section;
-
-		data[i].numberOfThreads = threadNumber;
-		data[i].thread_id = i;
+		CreateSimulationThreadData(&data[i], simulationName, celestialBodiesHead, mon, computation_section, saving_section, threadNumber, i);
 
 		if(pthread_create(&td[i], NULL, &SimulationMain, &data[i])){
 		  //Could not create the thread
@@ -208,7 +231,7 @@ int Simulate(struct List** celestialBodiesHead){
 		}
 		else{
 			printf("thread %d body %s OK \n\n", data[i].thread_id, data[i].body->name);
-			(*celestialBodiesHead) = (*celestialBodiesHead)->next;
+			(*celestialBodiesHead) = (*celestialBodiesHead)->next; //move list to next object
 		}
 	}
 	//launch simulation commander
@@ -228,12 +251,13 @@ int Simulate(struct List** celestialBodiesHead){
 	printf(KDATA"simulation over at step %d\n\n\n"KNORMAL, condition_current_iteration(data->computation_section));
 
 
-	 condition_destroy(computation_section);
-	 condition_destroy(saving_section);
-	 //FIXME: monitor_destroy causes seg_fault
-	// monitor_destroy(mon);
-	 free(data);
-	 free(td);
+	condition_destroy(computation_section);
+	condition_destroy(saving_section);
+	//FIXME: monitor_destroy used to cause seg_fault (WHY?)
+	monitor_destroy(mon);
+	//simulationthreaddataDestroy(); //TODO
+	free(data);
+	free(td);
 	printf(KDATA"cleanup completed\n\n\n" KNORMAL);
 	finalEnergy = CalculateSystemEnergy((*celestialBodiesHead));
 	printf("final system energy: %G\n", finalEnergy);
