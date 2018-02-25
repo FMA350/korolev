@@ -3,7 +3,7 @@
 #include <pthread.h> //for pthread_exit
 #include <stdio.h>
 #include <unistd.h>  //for sleep
-#include  <time.h>   //to calculate efficiency and time
+#include <time.h>   //to calculate efficiency and time
 
 #include "commands.h"
 #include "monitor.h"
@@ -15,7 +15,7 @@
 
 //double timeStep = 86400; //day
 double timeStep = 3600; //hour
-//double timeStep = 60;   //minute
+//double timeStep = 60;   //miSnute
 extern int sim_iteration;
 extern void (*SimulationMethod)(struct List*, SimulationThreadData* data);
 
@@ -45,6 +45,10 @@ void NewtonGravitation(struct Coordinates* myPosition, struct Coordinates* other
 void Euler(struct List* object, SimulationThreadData* data){
     //it does not conserve the energy of the system for a long time.
     int position = object->position;
+    data->temp->x = 0;
+    data->temp->y = 0;
+    data->temp->z = 0;
+    assign(data->newAcceleration, data->temp);
 
     struct List *currentElement = &(*object->next);
     while(currentElement->position != position){
@@ -58,13 +62,15 @@ void Euler(struct List* object, SimulationThreadData* data){
     summ(data->newCoordinates, data->temp);
 
     //data->newVelocity += V.old + a.new *dt
-    assign(data->temp, object->body->speedVector);
-    mols(data->newAcceleration, timeStep);
-    summ(data->temp, data->newAcceleration);
+    // assign(data->temp, object->body->speedVector);
+    // mols(data->newAcceleration, timeStep);
+    // summ(data->temp, data->newAcceleration);
+    // assign(data->newVelocity, data->temp);
+
+    assign(data->temp, data->newAcceleration);
+    mols(data->temp, timeStep);
+    summ(data->temp, object->body->speedVector);
     assign(data->newVelocity, data->temp);
-    data->temp->x = 0;
-    data->temp->y = 0;
-    data->temp->z = 0;
 }
 
  void RungeKutta(struct List* object, SimulationThreadData* data){
@@ -75,19 +81,6 @@ void Euler(struct List* object, SimulationThreadData* data){
 // TODO: contact the author, errata in knr e pag1
 // TODO: Bring the declaration and initialization of k*r and k*v out of the function
 //       for added efficiency.
-
-    //init:
-    // struct Coordinates* k1r = createCoordinateSet(0,0,0);
-    // struct Coordinates* data->k2r = createCoordinateSet(0,0,0);
-    // struct Coordinates* data->k3r = createCoordinateSet(0,0,0);
-    // struct Coordinates* data->k4r = createCoordinateSet(0,0,0);
-    //
-    // struct Coordinates* k1v = createCoordinateSet(0,0,0);
-    // struct Coordinates* data->k2v = createCoordinateSet(0,0,0);
-    // struct Coordinates* data->k3v = createCoordinateSet(0,0,0);
-    // struct Coordinates* data->k4v = createCoordinateSet(0,0,0);
-    //
-    // struct Coordinates* newVelocity     = createCoordinateSet(0,0,0);
 
     int position = object->position;
     struct List *currentElement = &(*object->next);
@@ -189,6 +182,14 @@ void Euler(struct List* object, SimulationThreadData* data){
     data->k1v->x = 0;
     data->k1v->y = 0;
     data->k1v->z = 0;
+    assign(data->k2v, data->k1v);
+    assign(data->k3v, data->k1v);
+    assign(data->k4v, data->k1v);
+    assign(data->k1r, data->k1v);
+    assign(data->k2r, data->k1v);
+    assign(data->k3r, data->k1v);
+    assign(data->k4r, data->k1v);
+  //  printf("k1v.x = %lf\n", data->k1v->x);
 //terribly inefficent. but it is 2.25 AM.
     // free(k1v);
     // free(data->k2v);
@@ -239,9 +240,7 @@ void* SimulationMain(void* input){
             //either WAIT_FOR_START OR SPIN_AT_BARRIER
             condition_wait(data->computation_section);
         }
-        //Euler(object, newCoordinates, newSpeedVector, newAcceleration);
         SimulationMethod((*object), data);
-
         //save lock.
         monitor_enter(data->mon);
         if(condition_check(data->saving_section)){

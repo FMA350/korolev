@@ -5,7 +5,7 @@
 
 typedef struct SimulationThreadData{
     char *simulationName; //for saving purposes.
-    struct List* object;
+    struct List* object; //for the love of God, I have to change the name of this variable
     struct CelestialBody* body;
 
     monitor mon;

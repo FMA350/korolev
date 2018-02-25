@@ -19,6 +19,7 @@
 extern struct List * celestialBodiesHead;
 extern int sim_iteration;
 extern int start_iteration;
+extern int simulationMethodFlag;
 
 const char * DELIMITER 	= " ";		//To delimit the text given by the user
 const int PARTITION_PARTS = 10; 	//to choose in how many parts the the orbit should be partitioned in.
@@ -166,7 +167,9 @@ int RemoveCelestialBody(struct List **list){
 int CreateSimulationThreadData(SimulationThreadData* data, char* simulationName, struct List**celestialBodiesHead, monitor mon, condition computation_section, condition saving_section, int threadNumber, int i){
 	data->simulationName = simulationName;
 	data->object = &(*(*celestialBodiesHead));
+	//data->object = &(*celestialBodiesHead);
 	data->body   =  &(*(*celestialBodiesHead)->body);
+	//data->body = (*celestialBodiesHead)->body;
 	data->mon    = mon;
 	data->computation_section = computation_section;
 	data->saving_section      = saving_section;
@@ -176,7 +179,7 @@ int CreateSimulationThreadData(SimulationThreadData* data, char* simulationName,
 	data->newVelocity = createCoordinateSet(0,0,0);
 	data->newCoordinates = createCoordinateSet(0,0,0);
 	data->newAcceleration = createCoordinateSet(0,0,0);
-	if(SimulationMethodFlag == 0){
+	if(simulationMethodFlag == 0){
 		//if simulation method is Runge-Kutta
 		data->k1r = createCoordinateSet(0,0,0);
 		data->k2r = createCoordinateSet(0,0,0);

@@ -30,7 +30,7 @@ struct List{
 	typedef struct CelestialBody{
 		struct CelestialBody* referenceBody;
 		char * name;
-	    double mass;
+	  double mass;
 		struct Coordinates* coordinates;
 		struct Coordinates* speedVector;
 		double u;
